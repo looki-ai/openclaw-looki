@@ -14,7 +14,7 @@ npx -y @looki-ai/openclaw-looki-cli@latest install
 
 The wizard walks through:
 
-1. **Language** — English or Chinese (use `--locale` to skip)
+1. **Language** — English, Spanish, French, Japanese, or Simplified Chinese (use `--locale` to skip)
 2. **Environment** — pick your region or enter a custom baseUrl
 3. **apiKey** — your Looki user API key (`lk-...`)
 4. **Forwarding** — auto-detects installed IM plugins (WhatsApp / Telegram /
@@ -46,7 +46,7 @@ All options work with both `install` and `configure`.
 | ------------------ | ---------------------------------------------------------- |
 | `--base-url <url>` | Skip the environment prompt and use this URL (must be http/https) |
 | `--api-key <key>`  | Skip the API key prompt                                    |
-| `--locale <code>`  | Force interface language: `zh-CN` or `en`                  |
+| `--locale <code>`  | Force interface language: `en` / `es` / `fr` / `ja` / `zh-CN` |
 | `--no-restart`     | Skip `openclaw gateway restart` after writing the config   |
 
 Non-interactive (CI) example:

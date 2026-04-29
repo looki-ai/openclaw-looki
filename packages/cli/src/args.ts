@@ -23,7 +23,7 @@ export class CliArgsError extends Error {
   }
 }
 
-const VALID_LOCALES: readonly Locale[] = ["zh-CN", "en"];
+const VALID_LOCALES: readonly Locale[] = ["en", "es", "fr", "ja", "zh-CN"];
 
 function parseLocale(value: string | undefined): Locale | undefined {
   if (value == null) return undefined;

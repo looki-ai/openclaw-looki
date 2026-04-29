@@ -61,11 +61,14 @@ function readLocaleMessages(locale: Locale): LocaleMessages {
   throw new Error(`Missing openclaw-looki locale file: ${locale}.json`);
 }
 
+const SUPPORTED_LOCALES: readonly Locale[] = ["en", "es", "fr", "ja", "zh-CN"];
+
 export function loadLocaleMessages(): Record<Locale, LocaleMessages> {
-  return {
-    "zh-CN": readLocaleMessages("zh-CN"),
-    en: readLocaleMessages("en"),
-  };
+  const out = {} as Record<Locale, LocaleMessages>;
+  for (const locale of SUPPORTED_LOCALES) {
+    out[locale] = readLocaleMessages(locale);
+  }
+  return out;
 }
 
 function selectMessageTemplate(value: MessageValue, params: MessageParams): string {

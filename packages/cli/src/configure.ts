@@ -39,11 +39,15 @@ const CUSTOM_BASE_URL_VALUE = "__custom__";
 function getBaseUrlOptions(t: Translator) {
   return [
     { label: "United States", value: GLOBAL_BASE_URL },
-    { label: "European Union", value: GLOBAL_BASE_URL },
     { label: "United Kingdom", value: GLOBAL_BASE_URL },
+    { label: "France", value: GLOBAL_BASE_URL },
+    { label: "Spain", value: GLOBAL_BASE_URL },
     { label: "Japan", value: GLOBAL_BASE_URL },
     { label: "Canada", value: GLOBAL_BASE_URL },
     { label: "Australia", value: GLOBAL_BASE_URL },
+    { label: "Russia", value: GLOBAL_BASE_URL },
+    { label: "South Korea", value: GLOBAL_BASE_URL },
+    { label: "Singapore", value: GLOBAL_BASE_URL },
     { label: "China", value: CHINA_BASE_URL },
     { label: t("env.optionCustom"), value: CUSTOM_BASE_URL_VALUE, hint: t("env.hintCustom") },
   ];
@@ -67,7 +71,7 @@ export async function chooseLocale(
   }
   // Use a neutral message key — we haven't committed to a locale yet.
   const guardCancel = makeGuardCancel(t);
-  const neutralMessage = `${MESSAGES.en["language.messageCli"]} / ${MESSAGES["zh-CN"]["language.messageCli"]}`;
+  const neutralMessage = MESSAGES.en["language.messageCli"] as string;
   const next = guardCancel(
     await select<Locale>({
       message: neutralMessage,

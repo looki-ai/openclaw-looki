@@ -26,7 +26,7 @@
     "note": "第一步：选择部署环境，对应写入 Looki 的 baseUrl。",
     "message": "请选择 Looki 环境",
     "optionCustom": "其他",
-    "hintCustom": "手动填写 baseUrl（例如 dev 环境、自部署）",
+    "hintCustom": "手动填写地址",
     "customMessage": "填写自定义 Looki baseUrl（以 http:// 或 https:// 开头）",
     "customInvalid": "请输入合法的 http(s) URL"
   },
@@ -157,7 +157,7 @@
     "optionsTitle": "  选项:",
     "optionBaseUrl": "    --base-url <url>  跳过环境选择（例如 https://open.looki.ai）",
     "optionApiKey": "    --api-key <key>   跳过 apiKey 交互",
-    "optionLocale": "    --locale <code>   强制指定界面语言（zh-CN | en）",
+    "optionLocale": "    --locale <code>   强制指定界面语言（en | es | fr | ja | zh-CN）",
     "optionNoRestart": "    --no-restart      配置写入后不执行 `openclaw gateway restart`"
   },
   "cli": {

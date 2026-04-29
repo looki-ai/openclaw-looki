@@ -26,7 +26,7 @@
     "note": "Step 1: choose the deployment environment. This controls Looki baseUrl.",
     "message": "Choose Looki environment",
     "optionCustom": "Other",
-    "hintCustom": "Enter baseUrl manually (e.g. dev environment, self-hosted)",
+    "hintCustom": "Enter URL manually",
     "customMessage": "Enter custom Looki baseUrl (starting with http:// or https://)",
     "customInvalid": "Please enter a valid http(s) URL"
   },
@@ -157,7 +157,7 @@
     "optionsTitle": "  Options:",
     "optionBaseUrl": "    --base-url <url>  Skip the environment prompt (e.g. https://open.looki.ai)",
     "optionApiKey": "    --api-key <key>   Skip the API key prompt",
-    "optionLocale": "    --locale <code>   Force interface language (zh-CN | en)",
+    "optionLocale": "    --locale <code>   Force interface language (en | es | fr | ja | zh-CN)",
     "optionNoRestart": "    --no-restart      Skip `openclaw gateway restart` after writing config"
   },
   "cli": {

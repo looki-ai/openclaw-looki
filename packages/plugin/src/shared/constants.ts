@@ -13,9 +13,12 @@ export const DEFAULT_POLL_TIMEOUT_MS = 30_000;
 export const DEFAULT_MAX_EVENTS = 10;
 
 export const DEFAULT_LOCALE = "en";
-export type Locale = "zh-CN" | "en";
+export type Locale = "en" | "es" | "fr" | "ja" | "zh-CN";
 
 export const UI_LANGUAGE_OPTIONS = [
-  { value: "en", label: "English", hint: "English" },
-  { value: "zh-CN", label: "中文", hint: "Simplified Chinese" },
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
+  { value: "fr", label: "Français" },
+  { value: "ja", label: "日本語" },
+  { value: "zh-CN", label: "中文" },
 ] as const;
