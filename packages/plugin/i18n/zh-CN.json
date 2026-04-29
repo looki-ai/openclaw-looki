@@ -1,0 +1,181 @@
+{
+  "wizard": {
+    "intro": "OpenClaw Looki 安装向导",
+    "introTitle": "Looki 设置",
+    "introLine1": "Looki 会拉取事件并转发给 OpenClaw Agent。",
+    "introLine2": "此向导会配置语言、baseUrl、apiKey 和可选转发。",
+    "outro": "Looki 安装完成",
+    "cancelled": "已取消 Looki 安装"
+  },
+  "status": {
+    "configured": "Looki: 已配置 ({baseUrl})",
+    "unconfigured": "Looki: 需要 baseUrl + apiKey",
+    "forwardCount": {
+      "zero": "转发目标：无",
+      "other": "转发目标：{count}"
+    }
+  },
+  "language": {
+    "title": "界面语言",
+    "message": "选择界面语言（仅影响当前向导，不会写入配置）",
+    "messageCli": "选择界面语言",
+    "saved": "已保存界面语言供下次使用：{locale}"
+  },
+  "env": {
+    "title": "环境选择",
+    "note": "第一步：选择部署环境，对应写入 Looki 的 baseUrl。",
+    "message": "请选择 Looki 环境",
+    "optionGlobal": "Global",
+    "optionChina": "China",
+    "optionCustom": "自定义",
+    "hintGlobal": "海外环境：https://open.looki.ai",
+    "hintChina": "中国大陆环境：https://open.looki.tech",
+    "hintCustom": "手动填写 baseUrl（例如 dev 环境、自部署）",
+    "customMessage": "填写自定义 Looki baseUrl（以 http:// 或 https:// 开头）",
+    "customInvalid": "请输入合法的 http(s) URL"
+  },
+  "apiKey": {
+    "title": "API Key",
+    "note": "第二步：填写 Looki 的 API Key。",
+    "message": "请输入 Looki API Key"
+  },
+  "field": {
+    "required": "该项必填"
+  },
+  "plugin": {
+    "title": "插件检测",
+    "none": "当前未检测到可转发插件，先只保存 Looki 基础配置。",
+    "detected": "检测到已安装插件：{labels}"
+  },
+  "listControls": {
+    "title": "操作提示",
+    "body": "Enter 配置 · Esc 退出"
+  },
+  "pageControls": {
+    "title": "页面操作",
+    "configured": "Enter 选择操作：修改、取消配置、返回",
+    "unconfigured": "Enter 进入填写页，Esc 返回列表"
+  },
+  "action": {
+    "message": "{label} 操作",
+    "edit": "修改配置",
+    "editHint": "重新填写 to",
+    "clear": "取消配置",
+    "clearHint": "移除这一项的转发配置",
+    "back": "返回",
+    "backHint": "回到插件列表"
+  },
+  "feishu": {
+    "allowFromTitle": "飞书 / Lark 候选",
+    "allowFromDetected": "检测到现有飞书 / Lark allowFrom：{values}",
+    "allowFromEmpty": "未检测到飞书 / Lark allowFrom；此处无法校验目标 ID，建议先完成飞书插件配置",
+    "invalidAllowFrom": "请填写正确的 allowFrom",
+    "toMessage": "填写飞书 / Lark to（Esc 返回）"
+  },
+  "weixin": {
+    "accountsTitle": "微信 / WeChat 账号",
+    "accountsDetected": "检测到已登录微信账号：{values}",
+    "usersTitle": "微信 / WeChat 用户候选",
+    "usersDetected": "检测到可发送的微信用户 ID：{values}",
+    "targetHelpTitle": "微信 / WeChat 目标获取",
+    "targetHelp": "先完成微信登录，并让目标用户给微信 bot 发过消息；安装器会尝试从本地 context-tokens.json 自动读取 accountId 和可发送的 user_id 候选。",
+    "accountIdMessage": "填写微信 / WeChat accountId（Esc 返回）",
+    "toMessage": "填写微信 / WeChat to / user_id（Esc 返回）"
+  },
+  "qqbot": {
+    "targetHelpTitle": "QQ Bot 目标获取",
+    "targetHelp": "私聊目标：让目标用户给 QQ Bot 发一句话，to 填 qqbot:c2c:<user_openid>\n群聊目标：在目标群里 @你的 Bot 发一句话，to 填 qqbot:group:<group_openid>\n频道目标：在频道里触发 Bot，to 填 qqbot:channel:<channel_id>",
+    "targetsTitle": "QQ Bot 候选",
+    "targetsDetected": "检测到本地 QQ Bot 目标：{values}",
+    "accountIdMessage": "填写 QQ Bot accountId（可选，Esc 返回）",
+    "toMessage": "填写 QQ Bot to（Esc 返回）"
+  },
+  "discord": {
+    "targetsTitle": "Discord 候选",
+    "targetsDetected": "检测到本地 Discord 目标：{values}",
+    "accountIdMessage": "填写 Discord accountId（可选，Esc 返回）",
+    "toMessage": "填写 Discord to / channel_id or user_id（Esc 返回）"
+  },
+  "telegram": {
+    "targetsTitle": "Telegram 候选",
+    "targetsDetected": "检测到本地 Telegram 目标：{values}",
+    "accountIdMessage": "填写 Telegram accountId（可选，Esc 返回）",
+    "toMessage": "填写 Telegram to（Esc 返回）"
+  },
+  "whatsapp": {
+    "targetsTitle": "WhatsApp 候选",
+    "targetsDetected": "检测到本地 WhatsApp 目标：{values}",
+    "accountIdMessage": "填写 WhatsApp accountId（可选，Esc 返回）",
+    "toMessage": "填写 WhatsApp to / +国家码手机号（Esc 返回）"
+  },
+  "generic": {
+    "accountIdMessage": "填写 {label} accountId（可选，Esc 返回）",
+    "toMessage": "填写 {label} to（Esc 返回）"
+  },
+  "forward": {
+    "targetMessage": "请选择需要转发 Agent 输出的聊天插件",
+    "doneLabel": "完成",
+    "doneHint": {
+      "zero": "暂不配置转发",
+      "other": "已完成 {count} 项"
+    },
+    "configuredHint": "已填写 {value}",
+    "invalidHint": "未完成：{value}",
+    "emptyHint": "未填写"
+  },
+  "openclaw": {
+    "missing": "未找到 openclaw，请先安装：",
+    "found": "已找到本地安装的 openclaw",
+    "docsHint": "  详见 https://docs.openclaw.ai/install"
+  },
+  "version": {
+    "missing": "无法获取 openclaw 版本号，请确认 `openclaw --version` 正常工作",
+    "tooLow": "当前 OpenClaw 版本 {version} 过低，需要 >= {minOpenclawVersion}",
+    "detected": "检测到 OpenClaw 版本: {version}"
+  },
+  "install": {
+    "start": "正在安装插件 {pluginSpec}",
+    "done": "Looki 插件安装完成",
+    "update": "检测到本地已安装，开始更新",
+    "updated": "Looki 插件更新完成",
+    "failed": "Looki 插件安装失败",
+    "failedManual": "插件安装失败，请手动执行：",
+    "updateFailedManual": "插件更新失败，请手动执行："
+  },
+  "restart": {
+    "start": "正在重启 OpenClaw Gateway",
+    "done": "OpenClaw Gateway 已重启",
+    "failed": "OpenClaw Gateway 重启失败",
+    "failedManual": "重启失败，可手动执行："
+  },
+  "config": {
+    "writtenTitle": "配置完成",
+    "written": "配置已写入：{path}"
+  },
+  "help": {
+    "usage": "  用法: npx -y @looki-ai/openclaw-looki-cli <命令> [选项]",
+    "commands": "  命令:",
+    "install": "    install           安装 Looki 插件并完成基础配置",
+    "configure": "    configure         只重新运行配置向导，不重新安装插件",
+    "help": "    help              显示帮助信息",
+    "optionsTitle": "  选项:",
+    "optionBaseUrl": "    --base-url <url>  跳过环境选择（例如 https://open.looki.ai）",
+    "optionApiKey": "    --api-key <key>   跳过 apiKey 交互",
+    "optionLocale": "    --locale <code>   强制指定界面语言（zh-CN | en）",
+    "optionNoRestart": "    --no-restart      配置写入后不执行 `openclaw gateway restart`"
+  },
+  "cli": {
+    "unknownCommand": "未知命令: {command}",
+    "invalidFlagBaseUrl": "--base-url 需要是非空的 URL",
+    "invalidFlagApiKey": "--api-key 需要是非空字符串",
+    "invalidFlagLocale": "--locale 必须是下列之一: {values}",
+    "flagParseError": "参数解析失败: {message}"
+  },
+  "diagnose": {
+    "openclawMissing": "提示：`openclaw` 不在 PATH 中。可以先执行 `npm install -g openclaw` 然后重新开一个终端。",
+    "eacces": "提示：看起来是权限问题。如果之前用 `sudo npm install -g` 安装过，请改用自己用户的 npm prefix，或者修复全局 npm 权限。",
+    "enoent": "提示：目标文件或路径不存在，请确认上一步安装已成功完成。",
+    "network": "提示：看起来是网络问题，请检查到 npm 和 OpenClaw gateway 的出站连接。",
+    "configReadFail": "提示：读取 {path} 失败。CLI 需要对 `~/.openclaw/` 有读写权限，请检查权限设置。"
+  }
+}

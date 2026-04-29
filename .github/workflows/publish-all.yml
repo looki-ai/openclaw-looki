@@ -1,0 +1,95 @@
+name: Publish Plugin
+run-name: Publish both @ ${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Shared version for plugin and CLI (e.g. 2.1.6)"
+        required: true
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: publish-all
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Pre-fetch npm 11 via corepack
+        env:
+          COREPACK_ENABLE_STRICT: "0"
+        run: corepack prepare npm@11.5.1
+
+      # --- plugin ---
+      - name: Set plugin version
+        working-directory: packages/plugin
+        run: |
+          pnpm version ${{ inputs.version }} --no-git-tag-version
+          node ./scripts/sync-manifest-version.mjs
+
+      - run: pnpm -F @looki-ai/openclaw-looki typecheck
+      - run: pnpm -F @looki-ai/openclaw-looki lint
+      - run: pnpm -F @looki-ai/openclaw-looki build
+
+      - name: Pack and publish plugin
+        working-directory: packages/plugin
+        env:
+          COREPACK_ENABLE_STRICT: "0"
+        run: |
+          TARBALL=$(pnpm pack | tail -n1)
+          echo "Packed plugin: $TARBALL"
+          corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
+
+      # --- CLI (same version, pins plugin to ^<version>) ---
+      - name: Set CLI version + plugin dep range
+        working-directory: packages/cli
+        env:
+          RANGE: ^${{ inputs.version }}
+        run: |
+          pnpm version ${{ inputs.version }} --no-git-tag-version
+          node -e "
+            const fs = require('fs');
+            const p = JSON.parse(fs.readFileSync('package.json','utf8'));
+            p.dependencies['@looki-ai/openclaw-looki'] = process.env.RANGE;
+            fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+          "
+
+      - run: pnpm -F @looki-ai/openclaw-looki-cli typecheck
+      - run: pnpm -F @looki-ai/openclaw-looki-cli lint
+      - run: pnpm -F @looki-ai/openclaw-looki-cli build
+
+      - name: Pack and publish CLI
+        working-directory: packages/cli
+        env:
+          COREPACK_ENABLE_STRICT: "0"
+        run: |
+          TARBALL=$(pnpm pack | tail -n1)
+          echo "Packed CLI: $TARBALL"
+          corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
+
+      - name: Tag release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ inputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"

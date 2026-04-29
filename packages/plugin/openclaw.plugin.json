@@ -1,0 +1,109 @@
+{
+  "id": "openclaw-looki",
+  "version": "2.1.3",
+  "engines": {
+    "openclaw": ">=2026.4.24"
+  },
+  "channels": [
+    "openclaw-looki"
+  ],
+  "skills": [
+    "./skills"
+  ],
+  "uiHints": {
+    "apiKey": {
+      "label": "API Key",
+      "placeholder": "lk-...",
+      "sensitive": true
+    },
+    "forwardTo": {
+      "label": "Forward To",
+      "help": "Optional downstream channel targets for agent output. Supported via runtime outbound: feishu, openclaw-weixin, qqbot, whatsapp, telegram, discord."
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {}
+  },
+  "channelConfigs": {
+    "openclaw-looki": {
+      "uiHints": {
+        "apiKey": {
+          "label": "API Key",
+          "placeholder": "lk-...",
+          "sensitive": true
+        },
+        "forwardTo": {
+          "label": "Forward To",
+          "help": "Optional downstream channel targets for agent output."
+        }
+      },
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the Looki event channel is enabled.",
+            "default": true
+          },
+          "baseUrl": {
+            "type": "string",
+            "description": "Base URL for the Looki event API, without the /subscriptions/... suffix.",
+            "default": "https://open.looki.ai"
+          },
+          "apiKey": {
+            "type": "string",
+            "description": "Looki user API key (lk-..., created via POST /users/api_keys). Server resolves the subscription automatically."
+          },
+          "accountId": {
+            "type": "string",
+            "description": "OpenClaw account id used for this inbound event source.",
+            "default": "default"
+          },
+          "pollTimeoutMs": {
+            "type": "number",
+            "description": "Long-poll timeout in milliseconds. Server caps at 30000.",
+            "default": 30000,
+            "minimum": 1000,
+            "maximum": 60000
+          },
+          "maxEvents": {
+            "type": "number",
+            "description": "Max events to pull per poll.",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "forwardTo": {
+            "type": "array",
+            "description": "Optional forward targets for agent output via runtime outbound (e.g. feishu, openclaw-weixin, qqbot, whatsapp, telegram, discord).",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "channel": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "to": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "channel",
+                "to"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

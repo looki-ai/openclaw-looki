@@ -1,0 +1,70 @@
+{
+  "name": "@looki-ai/openclaw-looki",
+  "version": "0.0.0",
+  "description": "Looki -> OpenClaw one-way event channel (getupdates long-poll, inbound-only)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/looki-ai/openclaw-looki",
+    "directory": "packages/plugin"
+  },
+  "homepage": "https://github.com/looki-ai/openclaw-looki",
+  "bugs": {
+    "url": "https://github.com/looki-ai/openclaw-looki/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./shared": {
+      "types": "./dist/src/shared/index.d.ts",
+      "default": "./dist/src/shared/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "i18n/",
+    "skills/",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "sync:manifest-version": "node ./scripts/sync-manifest-version.mjs",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run sync:manifest-version && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "openclaw": ">=2026.4.24"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "setupEntry": "./dist/setup-entry.js",
+    "channel": {
+      "id": "openclaw-looki",
+      "label": "openclaw-looki",
+      "selectionLabel": "openclaw-looki (event channel)",
+      "blurb": "Inbound-only event channel that polls Looki events and dispatches to an OpenClaw agent.",
+      "order": 80
+    }
+  }
+}

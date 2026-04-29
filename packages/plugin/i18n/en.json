@@ -1,0 +1,181 @@
+{
+  "wizard": {
+    "intro": "OpenClaw Looki installer",
+    "introTitle": "Looki setup",
+    "introLine1": "Looki pulls events and forwards them to an OpenClaw Agent.",
+    "introLine2": "This wizard configures language, baseUrl, apiKey, and optional forwarding.",
+    "outro": "Looki install complete",
+    "cancelled": "Looki install cancelled"
+  },
+  "status": {
+    "configured": "Looki: configured ({baseUrl})",
+    "unconfigured": "Looki: needs baseUrl + apiKey",
+    "forwardCount": {
+      "zero": "Forward targets: none",
+      "other": "Forward targets: {count}"
+    }
+  },
+  "language": {
+    "title": "Language",
+    "message": "Choose the interface language (only for this wizard, not saved)",
+    "messageCli": "Choose the interface language",
+    "saved": "Saved interface language for next run: {locale}"
+  },
+  "env": {
+    "title": "Environment",
+    "note": "Step 1: choose the deployment environment. This controls Looki baseUrl.",
+    "message": "Choose Looki environment",
+    "optionGlobal": "Global",
+    "optionChina": "China",
+    "optionCustom": "Custom",
+    "hintGlobal": "Hosted environment: https://open.looki.ai",
+    "hintChina": "China mainland environment: https://open.looki.tech",
+    "hintCustom": "Enter baseUrl manually (e.g. dev environment, self-hosted)",
+    "customMessage": "Enter custom Looki baseUrl (starting with http:// or https://)",
+    "customInvalid": "Please enter a valid http(s) URL"
+  },
+  "apiKey": {
+    "title": "API Key",
+    "note": "Step 2: enter the Looki API key.",
+    "message": "Enter Looki API Key"
+  },
+  "field": {
+    "required": "This field is required"
+  },
+  "plugin": {
+    "title": "Plugin Detection",
+    "none": "No forwarding plugins were detected. Only the basic Looki config will be saved.",
+    "detected": "Detected installed plugins: {labels}"
+  },
+  "listControls": {
+    "title": "Hint",
+    "body": "Enter to configure · Esc to exit"
+  },
+  "pageControls": {
+    "title": "Page",
+    "configured": "Enter to choose: edit, clear, or back",
+    "unconfigured": "Enter to configure · Esc to go back"
+  },
+  "action": {
+    "message": "{label} actions",
+    "edit": "Edit",
+    "editHint": "Enter or update the target",
+    "clear": "Clear",
+    "clearHint": "Remove this forwarding target",
+    "back": "Back",
+    "backHint": "Return to the plugin list"
+  },
+  "feishu": {
+    "allowFromTitle": "Feishu / Lark Candidates",
+    "allowFromDetected": "Detected Feishu / Lark allowFrom values: {values}",
+    "allowFromEmpty": "No Feishu / Lark allowFrom detected — target ID cannot be validated here; consider configuring the Feishu plugin first",
+    "invalidAllowFrom": "Please enter a valid allowFrom value",
+    "toMessage": "Enter Feishu / Lark to (Esc to go back)"
+  },
+  "weixin": {
+    "accountsTitle": "Weixin / WeChat Accounts",
+    "accountsDetected": "Detected logged-in Weixin accounts: {values}",
+    "usersTitle": "Weixin / WeChat User Candidates",
+    "usersDetected": "Detected sendable Weixin user IDs: {values}",
+    "targetHelpTitle": "Weixin / WeChat Target Discovery",
+    "targetHelp": "Log in to Weixin first and have the target user message the Weixin bot. The installer will try to read accountId and sendable user_id candidates from local context-tokens.json files.",
+    "accountIdMessage": "Enter Weixin / WeChat accountId (Esc to go back)",
+    "toMessage": "Enter Weixin / WeChat to / user_id (Esc to go back)"
+  },
+  "qqbot": {
+    "targetHelpTitle": "QQ Bot Target Discovery",
+    "targetHelp": "Direct message: have the target user send a message to QQ Bot, then use qqbot:c2c:<user_openid>\nGroup chat: @ your Bot in the target group, then use qqbot:group:<group_openid>\nChannel: trigger the Bot in the channel, then use qqbot:channel:<channel_id>",
+    "targetsTitle": "QQ Bot Candidates",
+    "targetsDetected": "Detected local QQ Bot targets: {values}",
+    "accountIdMessage": "Enter QQ Bot accountId (optional, Esc to go back)",
+    "toMessage": "Enter QQ Bot to (Esc to go back)"
+  },
+  "discord": {
+    "targetsTitle": "Discord Candidates",
+    "targetsDetected": "Detected local Discord targets: {values}",
+    "accountIdMessage": "Enter Discord accountId (optional, Esc to go back)",
+    "toMessage": "Enter Discord to / channel_id or user_id (Esc to go back)"
+  },
+  "telegram": {
+    "targetsTitle": "Telegram Candidates",
+    "targetsDetected": "Detected local Telegram targets: {values}",
+    "accountIdMessage": "Enter Telegram accountId (optional, Esc to go back)",
+    "toMessage": "Enter Telegram to (Esc to go back)"
+  },
+  "whatsapp": {
+    "targetsTitle": "WhatsApp Candidates",
+    "targetsDetected": "Detected local WhatsApp targets: {values}",
+    "accountIdMessage": "Enter WhatsApp accountId (optional, Esc to go back)",
+    "toMessage": "Enter WhatsApp to / +<country_code><phone> (Esc to go back)"
+  },
+  "generic": {
+    "accountIdMessage": "Enter {label} accountId (optional, Esc to go back)",
+    "toMessage": "Enter {label} to (Esc to go back)"
+  },
+  "forward": {
+    "targetMessage": "Choose chat plugins for Agent output forwarding",
+    "doneLabel": "Done",
+    "doneHint": {
+      "zero": "Skip forwarding for now",
+      "other": "{count} configured"
+    },
+    "configuredHint": "Configured: {value}",
+    "invalidHint": "Incomplete: {value}",
+    "emptyHint": "Not configured"
+  },
+  "openclaw": {
+    "missing": "OpenClaw was not found. Please install it first:",
+    "found": "Found a local OpenClaw installation",
+    "docsHint": "  Docs: https://docs.openclaw.ai/install"
+  },
+  "version": {
+    "missing": "Could not detect the OpenClaw version. Please make sure `openclaw --version` works.",
+    "tooLow": "OpenClaw {version} is too old. Required: >= {minOpenclawVersion}",
+    "detected": "Detected OpenClaw version: {version}"
+  },
+  "install": {
+    "start": "Installing plugin {pluginSpec}",
+    "done": "Looki plugin installed",
+    "update": "Plugin already installed, updating",
+    "updated": "Looki plugin updated",
+    "failed": "Looki plugin install failed",
+    "failedManual": "Plugin install failed. Please run it manually:",
+    "updateFailedManual": "Plugin update failed. Please run it manually:"
+  },
+  "restart": {
+    "start": "Restarting OpenClaw Gateway",
+    "done": "OpenClaw Gateway restarted",
+    "failed": "OpenClaw Gateway restart failed",
+    "failedManual": "Restart failed. You can run this manually:"
+  },
+  "config": {
+    "writtenTitle": "Saved",
+    "written": "Configuration written to: {path}"
+  },
+  "help": {
+    "usage": "  Usage: npx -y @looki-ai/openclaw-looki-cli <command> [options]",
+    "commands": "  Commands:",
+    "install": "    install           Install the Looki plugin and complete basic setup",
+    "configure": "    configure         Re-run the configuration wizard without installing",
+    "help": "    help              Show help",
+    "optionsTitle": "  Options:",
+    "optionBaseUrl": "    --base-url <url>  Skip the environment prompt (e.g. https://open.looki.ai)",
+    "optionApiKey": "    --api-key <key>   Skip the API key prompt",
+    "optionLocale": "    --locale <code>   Force interface language (zh-CN | en)",
+    "optionNoRestart": "    --no-restart      Skip `openclaw gateway restart` after writing config"
+  },
+  "cli": {
+    "unknownCommand": "Unknown command: {command}",
+    "invalidFlagBaseUrl": "--base-url must be a non-empty URL",
+    "invalidFlagApiKey": "--api-key must be a non-empty string",
+    "invalidFlagLocale": "--locale must be one of: {values}",
+    "flagParseError": "Invalid arguments: {message}"
+  },
+  "diagnose": {
+    "openclawMissing": "Hint: `openclaw` is not on PATH. Try `npm install -g openclaw` and reopen the shell.",
+    "eacces": "Hint: looks like a permission error. If you installed openclaw with `sudo npm install -g`, re-try with your user's npm prefix or fix npm's global permissions.",
+    "enoent": "Hint: the target binary or path was not found. Verify the install completed successfully.",
+    "network": "Hint: looks like a network issue. Check outbound connectivity to npm and the OpenClaw gateway host.",
+    "configReadFail": "Hint: failed to read {path}. Check file permissions; the CLI needs read+write access to `~/.openclaw/`."
+  }
+}
