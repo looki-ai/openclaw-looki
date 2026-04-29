@@ -50,10 +50,9 @@ jobs:
 
       - name: Pack and publish plugin
         working-directory: packages/plugin
-        env:
-          NODE_AUTH_TOKEN: ""
         run: |
           echo "npm version: $(npm --version)"
+          echo "registry=https://registry.npmjs.org/" > "$NPM_CONFIG_USERCONFIG"
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed plugin: $TARBALL"
           npm publish --access public --provenance "$TARBALL"
@@ -78,9 +77,8 @@ jobs:
 
       - name: Pack and publish CLI
         working-directory: packages/cli
-        env:
-          NODE_AUTH_TOKEN: ""
         run: |
+          echo "registry=https://registry.npmjs.org/" > "$NPM_CONFIG_USERCONFIG"
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed CLI: $TARBALL"
           npm publish --access public --provenance "$TARBALL"
