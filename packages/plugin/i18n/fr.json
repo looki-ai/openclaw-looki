@@ -1,0 +1,177 @@
+{
+  "wizard": {
+    "intro": "Programme d'installation OpenClaw Looki",
+    "introTitle": "Configuration Looki",
+    "introLine1": "Looki récupère les événements et les transmet à un agent OpenClaw.",
+    "introLine2": "Cet assistant configure la langue, baseUrl, apiKey et le transfert en option.",
+    "outro": "Installation de Looki terminée",
+    "cancelled": "Installation de Looki annulée"
+  },
+  "status": {
+    "configured": "Looki : configuré ({baseUrl})",
+    "unconfigured": "Looki : baseUrl + apiKey requis",
+    "forwardCount": {
+      "zero": "Cibles de transfert : aucune",
+      "other": "Cibles de transfert : {count}"
+    }
+  },
+  "language": {
+    "title": "Langue",
+    "message": "Choisissez la langue de l'interface (uniquement pour cet assistant, non enregistré)",
+    "messageCli": "Choisissez la langue de l'interface",
+    "saved": "Langue de l'interface enregistrée pour la prochaine exécution : {locale}"
+  },
+  "env": {
+    "title": "Environnement",
+    "note": "Étape 1 : choisissez l'environnement de déploiement. Cela définit le baseUrl de Looki.",
+    "message": "Choisissez l'environnement Looki",
+    "optionCustom": "Autre",
+    "hintCustom": "Saisir l'URL manuellement",
+    "customMessage": "Saisissez un baseUrl Looki personnalisé (commençant par http:// ou https://)",
+    "customInvalid": "Veuillez saisir une URL http(s) valide"
+  },
+  "apiKey": {
+    "title": "Clé API",
+    "note": "Étape 2 : saisissez la clé API Looki.",
+    "message": "Saisissez la clé API Looki"
+  },
+  "field": {
+    "required": "Ce champ est obligatoire"
+  },
+  "plugin": {
+    "title": "Détection des plugins",
+    "none": "Aucun plugin de transfert détecté. Seule la configuration Looki de base sera enregistrée.",
+    "detected": "Plugins installés détectés : {labels}"
+  },
+  "listControls": {
+    "title": "Astuce",
+    "body": "Entrée pour configurer · Échap pour quitter"
+  },
+  "pageControls": {
+    "title": "Page",
+    "configured": "Entrée pour choisir : modifier, effacer ou retour",
+    "unconfigured": "Entrée pour configurer · Échap pour revenir"
+  },
+  "action": {
+    "message": "Actions pour {label}",
+    "edit": "Modifier",
+    "editHint": "Saisir ou mettre à jour la cible",
+    "clear": "Effacer",
+    "clearHint": "Supprimer cette cible de transfert",
+    "back": "Retour",
+    "backHint": "Revenir à la liste des plugins"
+  },
+  "feishu": {
+    "allowFromTitle": "Candidats Lark",
+    "allowFromDetected": "Valeurs allowFrom Lark détectées : {values}",
+    "allowFromEmpty": "Aucun allowFrom Lark détecté — l'ID de la cible ne peut pas être validé ici ; envisagez de configurer d'abord le plugin Lark",
+    "invalidAllowFrom": "Veuillez saisir une valeur allowFrom valide",
+    "toMessage": "Saisissez la cible Lark (Échap pour revenir)"
+  },
+  "weixin": {
+    "accountsTitle": "Comptes WeChat",
+    "accountsDetected": "Comptes WeChat connectés détectés : {values}",
+    "usersTitle": "Candidats utilisateurs WeChat",
+    "usersDetected": "IDs utilisateurs WeChat disponibles pour l'envoi : {values}",
+    "targetHelpTitle": "Découverte de cibles WeChat",
+    "targetHelp": "Connectez-vous d'abord à WeChat et demandez à l'utilisateur cible d'envoyer un message au bot WeChat. Le programme d'installation tentera de lire accountId et les user_id candidats depuis les fichiers context-tokens.json locaux.",
+    "accountIdMessage": "Saisissez l'accountId WeChat (Échap pour revenir)",
+    "toMessage": "Saisissez la cible WeChat / user_id (Échap pour revenir)"
+  },
+  "qqbot": {
+    "targetHelpTitle": "Découverte de cibles QQ Bot",
+    "targetHelp": "Message direct : demandez à l'utilisateur cible d'envoyer un message au QQ Bot, puis utilisez qqbot:c2c:<user_openid>\nGroupe : @mentionnez votre Bot dans le groupe cible, puis utilisez qqbot:group:<group_openid>\nSalon : déclenchez le Bot dans le salon, puis utilisez qqbot:channel:<channel_id>",
+    "targetsTitle": "Candidats QQ Bot",
+    "targetsDetected": "Cibles QQ Bot locales détectées : {values}",
+    "accountIdMessage": "Saisissez l'accountId QQ Bot (optionnel, Échap pour revenir)",
+    "toMessage": "Saisissez la cible QQ Bot (Échap pour revenir)"
+  },
+  "discord": {
+    "targetsTitle": "Candidats Discord",
+    "targetsDetected": "Cibles Discord locales détectées : {values}",
+    "accountIdMessage": "Saisissez l'accountId Discord (optionnel, Échap pour revenir)",
+    "toMessage": "Saisissez la cible Discord / channel_id ou user_id (Échap pour revenir)"
+  },
+  "telegram": {
+    "targetsTitle": "Candidats Telegram",
+    "targetsDetected": "Cibles Telegram locales détectées : {values}",
+    "accountIdMessage": "Saisissez l'accountId Telegram (optionnel, Échap pour revenir)",
+    "toMessage": "Saisissez la cible Telegram (Échap pour revenir)"
+  },
+  "whatsapp": {
+    "targetsTitle": "Candidats WhatsApp",
+    "targetsDetected": "Cibles WhatsApp locales détectées : {values}",
+    "accountIdMessage": "Saisissez l'accountId WhatsApp (optionnel, Échap pour revenir)",
+    "toMessage": "Saisissez la cible WhatsApp / +<indicatif><téléphone> (Échap pour revenir)"
+  },
+  "generic": {
+    "accountIdMessage": "Saisissez l'accountId {label} (optionnel, Échap pour revenir)",
+    "toMessage": "Saisissez la cible {label} (Échap pour revenir)"
+  },
+  "forward": {
+    "targetMessage": "Choisissez les plugins de chat pour le transfert de la sortie de l'agent",
+    "doneLabel": "Terminé",
+    "doneHint": {
+      "zero": "Ignorer le transfert pour le moment",
+      "other": "{count} configuré(s)"
+    },
+    "configuredHint": "Configuré : {value}",
+    "invalidHint": "Incomplet : {value}",
+    "emptyHint": "Non configuré"
+  },
+  "openclaw": {
+    "missing": "OpenClaw est introuvable. Veuillez l'installer d'abord :",
+    "found": "Installation locale d'OpenClaw trouvée",
+    "docsHint": "  Docs : https://docs.openclaw.ai/install"
+  },
+  "version": {
+    "missing": "Impossible de détecter la version d'OpenClaw. Assurez-vous que `openclaw --version` fonctionne.",
+    "tooLow": "OpenClaw {version} est trop ancienne. Requis : >= {minOpenclawVersion}",
+    "detected": "Version d'OpenClaw détectée : {version}"
+  },
+  "install": {
+    "start": "Installation du plugin {pluginSpec}",
+    "done": "Plugin Looki installé",
+    "update": "Plugin déjà installé, mise à jour en cours",
+    "updated": "Plugin Looki mis à jour",
+    "failed": "Échec de l'installation du plugin Looki",
+    "failedManual": "Échec de l'installation du plugin. Veuillez l'exécuter manuellement :",
+    "updateFailedManual": "Échec de la mise à jour du plugin. Veuillez l'exécuter manuellement :"
+  },
+  "restart": {
+    "start": "Redémarrage de la passerelle OpenClaw",
+    "done": "Passerelle OpenClaw redémarrée",
+    "failed": "Échec du redémarrage de la passerelle OpenClaw",
+    "failedManual": "Échec du redémarrage. Vous pouvez l'exécuter manuellement :"
+  },
+  "config": {
+    "writtenTitle": "Enregistré",
+    "written": "Configuration écrite dans : {path}"
+  },
+  "help": {
+    "usage": "  Utilisation : npx -y @looki-ai/openclaw-looki-cli <commande> [options]",
+    "commands": "  Commandes :",
+    "install": "    install           Installe le plugin Looki et termine la configuration de base",
+    "configure": "    configure         Relance l'assistant de configuration sans réinstaller",
+    "help": "    help              Affiche l'aide",
+    "optionsTitle": "  Options :",
+    "optionBaseUrl": "    --base-url <url>  Ignore l'invite d'environnement (par ex. https://open.looki.ai)",
+    "optionApiKey": "    --api-key <key>   Ignore l'invite de clé API",
+    "optionLocale": "    --locale <code>   Force la langue de l'interface (en | es | fr | ja | zh-CN)",
+    "optionNoRestart": "    --no-restart      Ignore `openclaw gateway restart` après l'écriture de la configuration"
+  },
+  "cli": {
+    "unknownCommand": "Commande inconnue : {command}",
+    "invalidFlagBaseUrl": "--base-url doit être une URL non vide",
+    "invalidFlagApiKey": "--api-key doit être une chaîne non vide",
+    "invalidFlagLocale": "--locale doit être l'un des : {values}",
+    "flagParseError": "Arguments invalides : {message}"
+  },
+  "diagnose": {
+    "openclawMissing": "Astuce : `openclaw` n'est pas dans le PATH. Essayez `npm install -g openclaw` puis rouvrez le shell.",
+    "eacces": "Astuce : semble être une erreur de permissions. Si vous avez installé openclaw avec `sudo npm install -g`, réessayez avec le préfixe npm de votre utilisateur ou corrigez les permissions npm globales.",
+    "enoent": "Astuce : le binaire ou le chemin cible est introuvable. Vérifiez que l'installation s'est terminée avec succès.",
+    "network": "Astuce : semble être un problème réseau. Vérifiez la connectivité sortante vers npm et l'hôte de la passerelle OpenClaw.",
+    "configReadFail": "Astuce : échec de la lecture de {path}. Vérifiez les permissions du fichier ; le CLI a besoin d'un accès en lecture+écriture à `~/.openclaw/`."
+  }
+}

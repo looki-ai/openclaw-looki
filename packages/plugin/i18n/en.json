@@ -25,12 +25,8 @@
     "title": "Environment",
     "note": "Step 1: choose the deployment environment. This controls Looki baseUrl.",
     "message": "Choose Looki environment",
-    "optionGlobal": "Global",
-    "optionChina": "China",
-    "optionCustom": "Custom",
-    "hintGlobal": "Hosted environment: https://open.looki.ai",
-    "hintChina": "China mainland environment: https://open.looki.tech",
-    "hintCustom": "Enter baseUrl manually (e.g. dev environment, self-hosted)",
+    "optionCustom": "Other",
+    "hintCustom": "Enter URL manually",
     "customMessage": "Enter custom Looki baseUrl (starting with http:// or https://)",
     "customInvalid": "Please enter a valid http(s) URL"
   },
@@ -66,21 +62,21 @@
     "backHint": "Return to the plugin list"
   },
   "feishu": {
-    "allowFromTitle": "Feishu / Lark Candidates",
-    "allowFromDetected": "Detected Feishu / Lark allowFrom values: {values}",
-    "allowFromEmpty": "No Feishu / Lark allowFrom detected — target ID cannot be validated here; consider configuring the Feishu plugin first",
+    "allowFromTitle": "Lark Candidates",
+    "allowFromDetected": "Detected Lark allowFrom values: {values}",
+    "allowFromEmpty": "No Lark allowFrom detected — target ID cannot be validated here; consider configuring the Lark plugin first",
     "invalidAllowFrom": "Please enter a valid allowFrom value",
-    "toMessage": "Enter Feishu / Lark to (Esc to go back)"
+    "toMessage": "Enter Lark to (Esc to go back)"
   },
   "weixin": {
-    "accountsTitle": "Weixin / WeChat Accounts",
-    "accountsDetected": "Detected logged-in Weixin accounts: {values}",
-    "usersTitle": "Weixin / WeChat User Candidates",
-    "usersDetected": "Detected sendable Weixin user IDs: {values}",
-    "targetHelpTitle": "Weixin / WeChat Target Discovery",
-    "targetHelp": "Log in to Weixin first and have the target user message the Weixin bot. The installer will try to read accountId and sendable user_id candidates from local context-tokens.json files.",
-    "accountIdMessage": "Enter Weixin / WeChat accountId (Esc to go back)",
-    "toMessage": "Enter Weixin / WeChat to / user_id (Esc to go back)"
+    "accountsTitle": "WeChat Accounts",
+    "accountsDetected": "Detected logged-in WeChat accounts: {values}",
+    "usersTitle": "WeChat User Candidates",
+    "usersDetected": "Detected sendable WeChat user IDs: {values}",
+    "targetHelpTitle": "WeChat Target Discovery",
+    "targetHelp": "Log in to WeChat first and have the target user message the WeChat bot. The installer will try to read accountId and sendable user_id candidates from local context-tokens.json files.",
+    "accountIdMessage": "Enter WeChat accountId (Esc to go back)",
+    "toMessage": "Enter WeChat to / user_id (Esc to go back)"
   },
   "qqbot": {
     "targetHelpTitle": "QQ Bot Target Discovery",
@@ -161,7 +157,7 @@
     "optionsTitle": "  Options:",
     "optionBaseUrl": "    --base-url <url>  Skip the environment prompt (e.g. https://open.looki.ai)",
     "optionApiKey": "    --api-key <key>   Skip the API key prompt",
-    "optionLocale": "    --locale <code>   Force interface language (zh-CN | en)",
+    "optionLocale": "    --locale <code>   Force interface language (en | es | fr | ja | zh-CN)",
     "optionNoRestart": "    --no-restart      Skip `openclaw gateway restart` after writing config"
   },
   "cli": {

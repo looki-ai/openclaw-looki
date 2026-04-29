@@ -1,0 +1,177 @@
+{
+  "wizard": {
+    "intro": "OpenClaw Looki インストーラー",
+    "introTitle": "Looki セットアップ",
+    "introLine1": "Looki はイベントを取得して OpenClaw Agent に転送します。",
+    "introLine2": "このウィザードで言語、baseUrl、apiKey、およびオプションの転送設定を行います。",
+    "outro": "Looki のインストールが完了しました",
+    "cancelled": "Looki のインストールがキャンセルされました"
+  },
+  "status": {
+    "configured": "Looki: 設定済み ({baseUrl})",
+    "unconfigured": "Looki: baseUrl と apiKey が必要です",
+    "forwardCount": {
+      "zero": "転送先: なし",
+      "other": "転送先: {count}"
+    }
+  },
+  "language": {
+    "title": "言語",
+    "message": "インターフェースの言語を選択してください (このウィザードのみ、保存されません)",
+    "messageCli": "インターフェースの言語を選択してください",
+    "saved": "次回用にインターフェース言語を保存しました: {locale}"
+  },
+  "env": {
+    "title": "環境",
+    "note": "ステップ 1: デプロイ環境を選択します。これにより Looki の baseUrl が決まります。",
+    "message": "Looki の環境を選択してください",
+    "optionCustom": "その他",
+    "hintCustom": "URL を手動で入力",
+    "customMessage": "カスタム Looki baseUrl を入力してください (http:// または https:// で始まる)",
+    "customInvalid": "有効な http(s) URL を入力してください"
+  },
+  "apiKey": {
+    "title": "API キー",
+    "note": "ステップ 2: Looki の API キーを入力します。",
+    "message": "Looki の API キーを入力してください"
+  },
+  "field": {
+    "required": "この項目は必須です"
+  },
+  "plugin": {
+    "title": "プラグイン検出",
+    "none": "転送プラグインが検出されませんでした。Looki の基本設定のみ保存されます。",
+    "detected": "インストール済みのプラグインを検出しました: {labels}"
+  },
+  "listControls": {
+    "title": "ヒント",
+    "body": "Enter で設定 · Esc で終了"
+  },
+  "pageControls": {
+    "title": "ページ",
+    "configured": "Enter で選択: 編集、クリア、戻る",
+    "unconfigured": "Enter で設定 · Esc で戻る"
+  },
+  "action": {
+    "message": "{label} のアクション",
+    "edit": "編集",
+    "editHint": "転送先を入力または更新",
+    "clear": "クリア",
+    "clearHint": "この転送先を削除",
+    "back": "戻る",
+    "backHint": "プラグイン一覧に戻る"
+  },
+  "feishu": {
+    "allowFromTitle": "Lark 候補",
+    "allowFromDetected": "検出された Lark の allowFrom: {values}",
+    "allowFromEmpty": "Lark の allowFrom が検出されませんでした — ここではターゲット ID を検証できません。先に Lark プラグインの設定を検討してください",
+    "invalidAllowFrom": "有効な allowFrom 値を入力してください",
+    "toMessage": "Lark の転送先を入力してください (Esc で戻る)"
+  },
+  "weixin": {
+    "accountsTitle": "WeChat アカウント",
+    "accountsDetected": "ログイン中の WeChat アカウントを検出: {values}",
+    "usersTitle": "WeChat ユーザー候補",
+    "usersDetected": "送信可能な WeChat ユーザー ID: {values}",
+    "targetHelpTitle": "WeChat 転送先の検出",
+    "targetHelp": "まず WeChat にログインし、対象ユーザーから WeChat ボットへメッセージを送ってもらってください。インストーラーはローカルの context-tokens.json ファイルから accountId と送信可能な user_id 候補を読み取ろうとします。",
+    "accountIdMessage": "WeChat の accountId を入力してください (Esc で戻る)",
+    "toMessage": "WeChat の転送先 / user_id を入力してください (Esc で戻る)"
+  },
+  "qqbot": {
+    "targetHelpTitle": "QQ Bot 転送先の検出",
+    "targetHelp": "ダイレクトメッセージ: 対象ユーザーから QQ Bot にメッセージを送信してもらい、qqbot:c2c:<user_openid> を使用\nグループチャット: 対象グループで Bot を @ メンションし、qqbot:group:<group_openid> を使用\nチャンネル: チャンネルで Bot をトリガーし、qqbot:channel:<channel_id> を使用",
+    "targetsTitle": "QQ Bot 候補",
+    "targetsDetected": "ローカルの QQ Bot 転送先を検出: {values}",
+    "accountIdMessage": "QQ Bot の accountId を入力してください (任意、Esc で戻る)",
+    "toMessage": "QQ Bot の転送先を入力してください (Esc で戻る)"
+  },
+  "discord": {
+    "targetsTitle": "Discord 候補",
+    "targetsDetected": "ローカルの Discord 転送先を検出: {values}",
+    "accountIdMessage": "Discord の accountId を入力してください (任意、Esc で戻る)",
+    "toMessage": "Discord の転送先 / channel_id または user_id を入力してください (Esc で戻る)"
+  },
+  "telegram": {
+    "targetsTitle": "Telegram 候補",
+    "targetsDetected": "ローカルの Telegram 転送先を検出: {values}",
+    "accountIdMessage": "Telegram の accountId を入力してください (任意、Esc で戻る)",
+    "toMessage": "Telegram の転送先を入力してください (Esc で戻る)"
+  },
+  "whatsapp": {
+    "targetsTitle": "WhatsApp 候補",
+    "targetsDetected": "ローカルの WhatsApp 転送先を検出: {values}",
+    "accountIdMessage": "WhatsApp の accountId を入力してください (任意、Esc で戻る)",
+    "toMessage": "WhatsApp の転送先 / +<国コード><電話番号> を入力してください (Esc で戻る)"
+  },
+  "generic": {
+    "accountIdMessage": "{label} の accountId を入力してください (任意、Esc で戻る)",
+    "toMessage": "{label} の転送先を入力してください (Esc で戻る)"
+  },
+  "forward": {
+    "targetMessage": "Agent の出力を転送するチャットプラグインを選択してください",
+    "doneLabel": "完了",
+    "doneHint": {
+      "zero": "転送をスキップ",
+      "other": "{count} 件設定済み"
+    },
+    "configuredHint": "設定済み: {value}",
+    "invalidHint": "未完了: {value}",
+    "emptyHint": "未設定"
+  },
+  "openclaw": {
+    "missing": "OpenClaw が見つかりません。先にインストールしてください:",
+    "found": "ローカルの OpenClaw インストールを検出しました",
+    "docsHint": "  ドキュメント: https://docs.openclaw.ai/install"
+  },
+  "version": {
+    "missing": "OpenClaw のバージョンを検出できませんでした。`openclaw --version` が動作することを確認してください。",
+    "tooLow": "OpenClaw {version} はバージョンが古すぎます。必要: >= {minOpenclawVersion}",
+    "detected": "検出された OpenClaw バージョン: {version}"
+  },
+  "install": {
+    "start": "プラグイン {pluginSpec} をインストール中",
+    "done": "Looki プラグインをインストールしました",
+    "update": "プラグインはすでにインストール済みです。更新します",
+    "updated": "Looki プラグインを更新しました",
+    "failed": "Looki プラグインのインストールに失敗しました",
+    "failedManual": "プラグインのインストールに失敗しました。手動で実行してください:",
+    "updateFailedManual": "プラグインの更新に失敗しました。手動で実行してください:"
+  },
+  "restart": {
+    "start": "OpenClaw Gateway を再起動中",
+    "done": "OpenClaw Gateway を再起動しました",
+    "failed": "OpenClaw Gateway の再起動に失敗しました",
+    "failedManual": "再起動に失敗しました。手動で実行できます:"
+  },
+  "config": {
+    "writtenTitle": "保存しました",
+    "written": "設定を書き込みました: {path}"
+  },
+  "help": {
+    "usage": "  使い方: npx -y @looki-ai/openclaw-looki-cli <command> [options]",
+    "commands": "  コマンド:",
+    "install": "    install           Looki プラグインをインストールし基本設定を完了",
+    "configure": "    configure         インストールせずに設定ウィザードを再実行",
+    "help": "    help              ヘルプを表示",
+    "optionsTitle": "  オプション:",
+    "optionBaseUrl": "    --base-url <url>  環境選択をスキップ (例: https://open.looki.ai)",
+    "optionApiKey": "    --api-key <key>   API キーの入力をスキップ",
+    "optionLocale": "    --locale <code>   インターフェース言語を指定 (en | es | fr | ja | zh-CN)",
+    "optionNoRestart": "    --no-restart      設定書き込み後に `openclaw gateway restart` をスキップ"
+  },
+  "cli": {
+    "unknownCommand": "不明なコマンド: {command}",
+    "invalidFlagBaseUrl": "--base-url は空でない URL を指定してください",
+    "invalidFlagApiKey": "--api-key は空でない文字列を指定してください",
+    "invalidFlagLocale": "--locale は次のいずれかを指定してください: {values}",
+    "flagParseError": "引数が無効です: {message}"
+  },
+  "diagnose": {
+    "openclawMissing": "ヒント: `openclaw` が PATH にありません。`npm install -g openclaw` を実行してシェルを開き直してください。",
+    "eacces": "ヒント: パーミッションエラーのようです。`sudo npm install -g` で openclaw をインストールした場合は、ユーザーの npm prefix で再試行するか、グローバル npm のパーミッションを修正してください。",
+    "enoent": "ヒント: 対象のバイナリまたはパスが見つかりません。インストールが正常に完了したか確認してください。",
+    "network": "ヒント: ネットワークの問題のようです。npm と OpenClaw gateway ホストへの送信接続を確認してください。",
+    "configReadFail": "ヒント: {path} の読み込みに失敗しました。ファイルのパーミッションを確認してください。CLI は `~/.openclaw/` への読み取り+書き込みアクセスが必要です。"
+  }
+}

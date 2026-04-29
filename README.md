@@ -5,9 +5,9 @@ An OpenClaw channel plugin for Looki, with a built-in `looki-memory` skill.
 ## Features
 
 - Long-polls Looki's `/getupdates` and delivers events to your OpenClaw agent
-- Optionally forwards the agent's output in parallel to Feishu / WeChat /
-  QQ Bot / WhatsApp / Telegram / Discord (each target is isolated — one
-  failure does not block the others)
+- Optionally forwards the agent's output in parallel to WhatsApp / Telegram /
+  Discord / Lark / WeChat / QQ Bot (each target is isolated — one failure
+  does not block the others)
 - Ships a `looki_memory` tool and matching skill so the agent can read Looki
   memory directly (profile, calendar, day timeline, moment detail & files,
   semantic search, For You highlights)
@@ -29,14 +29,6 @@ openclaw plugins install @looki-ai/openclaw-looki
 Then add the [configuration](#configuration) to `~/.openclaw/openclaw.json`
 and run `openclaw gateway restart`.
 
-## Environments
-
-| Environment | baseUrl                   |
-| ----------- | ------------------------- |
-| Global      | `https://open.looki.ai`   |
-| China       | `https://open.looki.tech` |
-| Custom      | Custom URL                |
-
 ## Configuration
 
 Add this to `~/.openclaw/openclaw.json`:
@@ -51,9 +43,9 @@ Add this to `~/.openclaw/openclaw.json`:
       "pollTimeoutMs": 30000,
       "maxEvents": 10,
       "forwardTo": [
-        { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx" },
         { "channel": "telegram",        "accountId": "default",           "to": "123456789" },
-        { "channel": "openclaw-weixin", "accountId": "weixin-account-id", "to": "weixin_user_id" }
+        { "channel": "discord",         "accountId": "default",           "to": "channel_id" },
+        { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx" }
       ]
     }
   }
@@ -84,22 +76,22 @@ restarted** first.
 
 | channel           | Plugin                            | `to` format                                                    |
 | ----------------- | --------------------------------- | -------------------------------------------------------------- |
-| `feishu`          | `@larksuite/openclaw-lark`        | Feishu open_id / chat_id etc.                                  |
-| `openclaw-weixin` | `@tencent-weixin/openclaw-weixin` | WeChat user id — recipient should have messaged the bot first  |
-| `qqbot`           | `@openclaw/qqbot`                 | `qqbot:c2c:<openid>` / `qqbot:group:<groupid>`                 |
 | `whatsapp`        | `@openclaw/whatsapp`              | WhatsApp JID or phone number                                   |
 | `telegram`        | `@openclaw/telegram`              | Telegram chat id (topic per Telegram plugin format)            |
 | `discord`         | `@openclaw/discord`               | Discord channel id / DM / thread id                            |
+| `feishu`          | `@larksuite/openclaw-lark`        | Lark open_id / chat_id etc.                                    |
+| `openclaw-weixin` | `@tencent-weixin/openclaw-weixin` | WeChat user id — recipient should have messaged the bot first  |
+| `qqbot`           | `@openclaw/qqbot`                 | `qqbot:c2c:<openid>` / `qqbot:group:<groupid>`                 |
 
 Common installs:
 
 ```bash
-openclaw plugins install @larksuite/openclaw-lark
-openclaw plugins install @tencent-weixin/openclaw-weixin
-openclaw plugins install @openclaw/qqbot
 openclaw plugins install @openclaw/whatsapp
 openclaw plugins install @openclaw/telegram
 openclaw plugins install @openclaw/discord
+openclaw plugins install @larksuite/openclaw-lark
+openclaw plugins install @tencent-weixin/openclaw-weixin
+openclaw plugins install @openclaw/qqbot
 ```
 
 Notes:

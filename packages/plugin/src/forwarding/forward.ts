@@ -22,12 +22,12 @@ export type ForwardChannelRuntime = {
 };
 
 const INSTALL_HINTS: Record<string, string> = {
-  feishu: "install @larksuite/openclaw-lark",
-  "openclaw-weixin": "install @tencent-weixin/openclaw-weixin",
-  qqbot: "install @openclaw/qqbot",
   whatsapp: "install @openclaw/whatsapp",
   telegram: "install @openclaw/telegram",
   discord: "install @openclaw/discord",
+  feishu: "install @larksuite/openclaw-lark",
+  "openclaw-weixin": "install @tencent-weixin/openclaw-weixin",
+  qqbot: "install @openclaw/qqbot",
 };
 
 export type ForwardDeps = {

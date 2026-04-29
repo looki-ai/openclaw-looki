@@ -1,0 +1,177 @@
+{
+  "wizard": {
+    "intro": "Instalador de OpenClaw Looki",
+    "introTitle": "Configuración de Looki",
+    "introLine1": "Looki obtiene eventos y los reenvía a un agente OpenClaw.",
+    "introLine2": "Este asistente configura el idioma, baseUrl, apiKey y el reenvío opcional.",
+    "outro": "Instalación de Looki completada",
+    "cancelled": "Instalación de Looki cancelada"
+  },
+  "status": {
+    "configured": "Looki: configurado ({baseUrl})",
+    "unconfigured": "Looki: se requiere baseUrl + apiKey",
+    "forwardCount": {
+      "zero": "Destinos de reenvío: ninguno",
+      "other": "Destinos de reenvío: {count}"
+    }
+  },
+  "language": {
+    "title": "Idioma",
+    "message": "Elige el idioma de la interfaz (solo para este asistente, no se guarda)",
+    "messageCli": "Elige el idioma de la interfaz",
+    "saved": "Idioma de la interfaz guardado para la próxima ejecución: {locale}"
+  },
+  "env": {
+    "title": "Entorno",
+    "note": "Paso 1: elige el entorno de despliegue. Esto define el baseUrl de Looki.",
+    "message": "Elige el entorno de Looki",
+    "optionCustom": "Otro",
+    "hintCustom": "Introducir la URL manualmente",
+    "customMessage": "Introduce un baseUrl de Looki personalizado (que empiece por http:// o https://)",
+    "customInvalid": "Introduce una URL http(s) válida"
+  },
+  "apiKey": {
+    "title": "Clave API",
+    "note": "Paso 2: introduce la clave API de Looki.",
+    "message": "Introduce la clave API de Looki"
+  },
+  "field": {
+    "required": "Este campo es obligatorio"
+  },
+  "plugin": {
+    "title": "Detección de plugins",
+    "none": "No se detectaron plugins de reenvío. Solo se guardará la configuración básica de Looki.",
+    "detected": "Plugins instalados detectados: {labels}"
+  },
+  "listControls": {
+    "title": "Sugerencia",
+    "body": "Enter para configurar · Esc para salir"
+  },
+  "pageControls": {
+    "title": "Página",
+    "configured": "Enter para elegir: editar, limpiar o atrás",
+    "unconfigured": "Enter para configurar · Esc para volver"
+  },
+  "action": {
+    "message": "Acciones de {label}",
+    "edit": "Editar",
+    "editHint": "Introduce o actualiza el destino",
+    "clear": "Limpiar",
+    "clearHint": "Elimina este destino de reenvío",
+    "back": "Atrás",
+    "backHint": "Vuelve a la lista de plugins"
+  },
+  "feishu": {
+    "allowFromTitle": "Candidatos de Lark",
+    "allowFromDetected": "Valores allowFrom de Lark detectados: {values}",
+    "allowFromEmpty": "No se detectó allowFrom de Lark — aquí no se puede validar el ID de destino; considera configurar primero el plugin de Lark",
+    "invalidAllowFrom": "Introduce un valor allowFrom válido",
+    "toMessage": "Introduce el destino de Lark (Esc para volver)"
+  },
+  "weixin": {
+    "accountsTitle": "Cuentas de WeChat",
+    "accountsDetected": "Cuentas de WeChat conectadas detectadas: {values}",
+    "usersTitle": "Candidatos de usuarios de WeChat",
+    "usersDetected": "IDs de usuarios de WeChat a los que se puede enviar: {values}",
+    "targetHelpTitle": "Descubrimiento de destinos de WeChat",
+    "targetHelp": "Primero inicia sesión en WeChat y pide al usuario de destino que envíe un mensaje al bot de WeChat. El instalador intentará leer accountId y los user_id candidatos desde los ficheros locales context-tokens.json.",
+    "accountIdMessage": "Introduce el accountId de WeChat (Esc para volver)",
+    "toMessage": "Introduce el destino de WeChat / user_id (Esc para volver)"
+  },
+  "qqbot": {
+    "targetHelpTitle": "Descubrimiento de destinos de QQ Bot",
+    "targetHelp": "Mensaje directo: pide al usuario de destino que envíe un mensaje al QQ Bot, luego usa qqbot:c2c:<user_openid>\nChat de grupo: menciona con @ a tu Bot en el grupo de destino, luego usa qqbot:group:<group_openid>\nCanal: activa el Bot en el canal, luego usa qqbot:channel:<channel_id>",
+    "targetsTitle": "Candidatos de QQ Bot",
+    "targetsDetected": "Destinos locales de QQ Bot detectados: {values}",
+    "accountIdMessage": "Introduce el accountId de QQ Bot (opcional, Esc para volver)",
+    "toMessage": "Introduce el destino de QQ Bot (Esc para volver)"
+  },
+  "discord": {
+    "targetsTitle": "Candidatos de Discord",
+    "targetsDetected": "Destinos locales de Discord detectados: {values}",
+    "accountIdMessage": "Introduce el accountId de Discord (opcional, Esc para volver)",
+    "toMessage": "Introduce el destino de Discord / channel_id o user_id (Esc para volver)"
+  },
+  "telegram": {
+    "targetsTitle": "Candidatos de Telegram",
+    "targetsDetected": "Destinos locales de Telegram detectados: {values}",
+    "accountIdMessage": "Introduce el accountId de Telegram (opcional, Esc para volver)",
+    "toMessage": "Introduce el destino de Telegram (Esc para volver)"
+  },
+  "whatsapp": {
+    "targetsTitle": "Candidatos de WhatsApp",
+    "targetsDetected": "Destinos locales de WhatsApp detectados: {values}",
+    "accountIdMessage": "Introduce el accountId de WhatsApp (opcional, Esc para volver)",
+    "toMessage": "Introduce el destino de WhatsApp / +<código de país><teléfono> (Esc para volver)"
+  },
+  "generic": {
+    "accountIdMessage": "Introduce el accountId de {label} (opcional, Esc para volver)",
+    "toMessage": "Introduce el destino de {label} (Esc para volver)"
+  },
+  "forward": {
+    "targetMessage": "Elige los plugins de chat para reenviar la salida del agente",
+    "doneLabel": "Listo",
+    "doneHint": {
+      "zero": "Omitir el reenvío por ahora",
+      "other": "{count} configurados"
+    },
+    "configuredHint": "Configurado: {value}",
+    "invalidHint": "Incompleto: {value}",
+    "emptyHint": "Sin configurar"
+  },
+  "openclaw": {
+    "missing": "No se encontró OpenClaw. Por favor, instálalo primero:",
+    "found": "Se encontró una instalación local de OpenClaw",
+    "docsHint": "  Docs: https://docs.openclaw.ai/install"
+  },
+  "version": {
+    "missing": "No se pudo detectar la versión de OpenClaw. Asegúrate de que `openclaw --version` funciona.",
+    "tooLow": "OpenClaw {version} es demasiado antigua. Se requiere: >= {minOpenclawVersion}",
+    "detected": "Versión de OpenClaw detectada: {version}"
+  },
+  "install": {
+    "start": "Instalando plugin {pluginSpec}",
+    "done": "Plugin de Looki instalado",
+    "update": "Plugin ya instalado, actualizando",
+    "updated": "Plugin de Looki actualizado",
+    "failed": "Error al instalar el plugin de Looki",
+    "failedManual": "Error al instalar el plugin. Ejecútalo manualmente:",
+    "updateFailedManual": "Error al actualizar el plugin. Ejecútalo manualmente:"
+  },
+  "restart": {
+    "start": "Reiniciando OpenClaw Gateway",
+    "done": "OpenClaw Gateway reiniciado",
+    "failed": "Error al reiniciar OpenClaw Gateway",
+    "failedManual": "Error al reiniciar. Puedes ejecutarlo manualmente:"
+  },
+  "config": {
+    "writtenTitle": "Guardado",
+    "written": "Configuración escrita en: {path}"
+  },
+  "help": {
+    "usage": "  Uso: npx -y @looki-ai/openclaw-looki-cli <comando> [opciones]",
+    "commands": "  Comandos:",
+    "install": "    install           Instala el plugin de Looki y completa la configuración básica",
+    "configure": "    configure         Vuelve a ejecutar el asistente de configuración sin instalar",
+    "help": "    help              Muestra la ayuda",
+    "optionsTitle": "  Opciones:",
+    "optionBaseUrl": "    --base-url <url>  Omite el mensaje de entorno (p. ej. https://open.looki.ai)",
+    "optionApiKey": "    --api-key <key>   Omite el mensaje de clave API",
+    "optionLocale": "    --locale <code>   Fuerza el idioma de la interfaz (en | es | fr | ja | zh-CN)",
+    "optionNoRestart": "    --no-restart      Omite `openclaw gateway restart` tras escribir la configuración"
+  },
+  "cli": {
+    "unknownCommand": "Comando desconocido: {command}",
+    "invalidFlagBaseUrl": "--base-url debe ser una URL no vacía",
+    "invalidFlagApiKey": "--api-key debe ser una cadena no vacía",
+    "invalidFlagLocale": "--locale debe ser uno de: {values}",
+    "flagParseError": "Argumentos no válidos: {message}"
+  },
+  "diagnose": {
+    "openclawMissing": "Sugerencia: `openclaw` no está en el PATH. Prueba `npm install -g openclaw` y vuelve a abrir la terminal.",
+    "eacces": "Sugerencia: parece un error de permisos. Si instalaste openclaw con `sudo npm install -g`, reintenta con el prefijo npm de tu usuario o arregla los permisos globales de npm.",
+    "enoent": "Sugerencia: no se encontró el binario o la ruta de destino. Verifica que la instalación se haya completado correctamente.",
+    "network": "Sugerencia: parece un problema de red. Comprueba la conectividad saliente hacia npm y el host del gateway de OpenClaw.",
+    "configReadFail": "Sugerencia: no se pudo leer {path}. Comprueba los permisos del fichero; el CLI necesita acceso de lectura y escritura a `~/.openclaw/`."
+  }
+}

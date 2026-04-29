@@ -35,8 +35,17 @@ const tw = createTranslator(MESSAGES, () => wizardLocale);
 
 function getBaseUrlOptions() {
   return [
-    { value: GLOBAL_BASE_URL, label: tw("env.optionGlobal"), hint: tw("env.hintGlobal") },
-    { value: CHINA_BASE_URL, label: tw("env.optionChina"), hint: tw("env.hintChina") },
+    { value: GLOBAL_BASE_URL, label: "United States" },
+    { value: GLOBAL_BASE_URL, label: "United Kingdom" },
+    { value: GLOBAL_BASE_URL, label: "France" },
+    { value: GLOBAL_BASE_URL, label: "Spain" },
+    { value: GLOBAL_BASE_URL, label: "Japan" },
+    { value: GLOBAL_BASE_URL, label: "Canada" },
+    { value: GLOBAL_BASE_URL, label: "Australia" },
+    { value: GLOBAL_BASE_URL, label: "Russia" },
+    { value: GLOBAL_BASE_URL, label: "South Korea" },
+    { value: GLOBAL_BASE_URL, label: "Singapore" },
+    { value: CHINA_BASE_URL, label: "China" },
   ];
 }
 
@@ -404,7 +413,7 @@ export const lookiSetupWizard: ChannelSetupWizard = {
   credentials: [],
   prepare: async ({ cfg, prompter }) => {
     wizardLocale = await prompter.select({
-      message: `${MESSAGES.en["language.messageCli"]} / ${MESSAGES["zh-CN"]["language.messageCli"]}`,
+      message: MESSAGES.en["language.messageCli"] as string,
       options: [...UI_LANGUAGE_OPTIONS],
       initialValue: DEFAULT_LOCALE,
     });
@@ -420,7 +429,6 @@ export const lookiSetupWizard: ChannelSetupWizard = {
       options: baseUrlOptions.map((option) => ({
         value: option.value,
         label: option.label,
-        hint: option.hint,
       })),
       initialValue: initialBaseUrl,
     });

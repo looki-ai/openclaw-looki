@@ -8,7 +8,7 @@ import {
   type Locale,
 } from "@looki-ai/openclaw-looki/shared";
 
-import { CliArgsError, parseCliArgs, type CliOptions } from "./args.js";
+import { CliArgsError, KNOWN_LOCALES, parseCliArgs, type CliOptions } from "./args.js";
 import { runConfigure } from "./configure.js";
 import { makeTranslator, type Translator } from "./i18n.js";
 import { error, log } from "./ui.js";
@@ -130,7 +130,7 @@ async function main(): Promise<number> {
     if (err instanceof CliArgsError) {
       const hintKey = err.keyHint;
       if (hintKey === "cli.invalidFlagLocale") {
-        error(t(hintKey, { values: "zh-CN, en" }));
+        error(t(hintKey, { values: KNOWN_LOCALES.join(", ") }));
       } else if (hintKey === "cli.flagParseError" || !hintKey) {
         error(t("cli.flagParseError", { message: err.message }));
       } else {

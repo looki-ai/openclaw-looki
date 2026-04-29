@@ -18,7 +18,7 @@
     },
     "forwardTo": {
       "label": "Forward To",
-      "help": "Optional downstream channel targets for agent output. Supported via runtime outbound: feishu, openclaw-weixin, qqbot, whatsapp, telegram, discord."
+      "help": "Optional downstream channel targets for agent output. Supported via runtime outbound: whatsapp, telegram, discord, feishu, openclaw-weixin, qqbot."
     }
   },
   "configSchema": {
@@ -78,7 +78,7 @@
           },
           "forwardTo": {
             "type": "array",
-            "description": "Optional forward targets for agent output via runtime outbound (e.g. feishu, openclaw-weixin, qqbot, whatsapp, telegram, discord).",
+            "description": "Optional forward targets for agent output via runtime outbound (e.g. whatsapp, telegram, discord, feishu, openclaw-weixin, qqbot).",
             "items": {
               "type": "object",
               "additionalProperties": false,
