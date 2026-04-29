@@ -27,7 +27,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -52,10 +51,10 @@ jobs:
         working-directory: packages/plugin
         env:
           COREPACK_ENABLE_STRICT: "0"
+          NPM_CONFIG_USERCONFIG: ""
+          NODE_AUTH_TOKEN: ""
         run: |
-          rm -f "$NPM_CONFIG_USERCONFIG" ~/.npmrc
           echo "registry=https://registry.npmjs.org/" > ~/.npmrc
-          unset NODE_AUTH_TOKEN
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed plugin: $TARBALL"
           corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
@@ -82,10 +81,10 @@ jobs:
         working-directory: packages/cli
         env:
           COREPACK_ENABLE_STRICT: "0"
+          NPM_CONFIG_USERCONFIG: ""
+          NODE_AUTH_TOKEN: ""
         run: |
-          rm -f "$NPM_CONFIG_USERCONFIG" ~/.npmrc
           echo "registry=https://registry.npmjs.org/" > ~/.npmrc
-          unset NODE_AUTH_TOKEN
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed CLI: $TARBALL"
           corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
