@@ -60,7 +60,7 @@ export async function runForwardWizard(
   }
 
   await note(
-    t("plugin.detected", { labels: availableTargets.map((target) => target.label).join("、") }),
+    t("plugin.detected", { labels: availableTargets.map((target) => target.label).join(", ") }),
     t("plugin.title"),
   );
 

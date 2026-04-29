@@ -404,7 +404,7 @@ export const lookiSetupWizard: ChannelSetupWizard = {
   credentials: [],
   prepare: async ({ cfg, prompter }) => {
     wizardLocale = await prompter.select({
-      message: "Choose interface language / 选择界面语言",
+      message: `${MESSAGES.en["language.messageCli"]} / ${MESSAGES["zh-CN"]["language.messageCli"]}`,
       options: [...UI_LANGUAGE_OPTIONS],
       initialValue: DEFAULT_LOCALE,
     });
@@ -467,7 +467,7 @@ export const lookiSetupWizard: ChannelSetupWizard = {
       };
     }
     await prompter.note(
-      tw("plugin.detected", { labels: availableTargets.map((target) => target.label).join("、") }),
+      tw("plugin.detected", { labels: availableTargets.map((target) => target.label).join(", ") }),
       tw("plugin.title"),
     );
     const forwardTo = await configureForwardTargets({
