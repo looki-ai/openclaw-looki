@@ -30,6 +30,8 @@ Use the `looki_memory` tool whenever the user wants information from their Looki
 - The user wants to search memories by topic
 - The user wants AI-generated highlights or recaps
 - The user asks profile questions based on their Looki account
+- The user wants to see their own reminders
+- The user wants to enable or disable the openclaw notification for a specific reminder
 
 ## Tool mapping
 
@@ -134,6 +136,40 @@ Optional:
 - `created_to`
 - `cursor_id`
 - `order_by`
+
+### 8. List the user's reminders
+
+Use when the user wants to see what reminders they have, or asks which ones still have openclaw notification enabled.
+
+```json
+{
+  "action": "reminders",
+  "limit": 20
+}
+```
+
+Optional:
+
+- `status`: `1` (NOT_START), `2` (IN_PROGRESS), or `3` (DONE). Omit to include all statuses.
+- `cursor_id`: pagination cursor
+- `limit`: page size (max 100)
+
+Each returned item includes `openclaw_enabled`, which reflects whether reminder notifications for this item are forwarded through openclaw.
+
+### 9. Toggle the openclaw notification switch for a reminder
+
+Use when the user wants to enable/disable openclaw notification for one reminder (e.g. "stop pushing this reminder to openclaw", "关掉这条提醒的 openclaw 推送").
+
+```json
+{
+  "action": "reminder_openclaw",
+  "reminder_id": "reminder-uuid",
+  "enabled": true
+}
+```
+
+- `enabled: true` turns openclaw notification on for that reminder; `false` turns it off.
+- If the user only references the reminder by content, first call `reminders` to resolve the ID before toggling.
 
 ## Behavior
 

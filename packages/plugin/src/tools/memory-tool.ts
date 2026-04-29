@@ -15,7 +15,9 @@ type LookiMemoryAction =
   | "moment"
   | "moment_files"
   | "search"
-  | "for_you";
+  | "for_you"
+  | "reminders"
+  | "reminder_openclaw";
 
 type ToolLogger = {
   info?: (message: string) => void;
@@ -72,10 +74,12 @@ function buildQuery(
   return params;
 }
 
-async function lookiMemoryGet(
+async function lookiMemoryRequest(
   cfg: OpenClawConfig,
+  method: "GET" | "POST",
   path: string,
   query: Record<string, string | number | boolean | undefined>,
+  body?: JsonRecord,
 ): Promise<JsonRecord> {
   const account = resolveLookiAccount(cfg);
   if (!account.configured) {
@@ -93,14 +97,17 @@ async function lookiMemoryGet(
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), LOOKI_MEMORY_FETCH_TIMEOUT_MS);
+  const headers: Record<string, string> = { "X-API-Key": account.apiKey };
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
   let res: Response;
   let rawText: string;
   try {
     res = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        "X-API-Key": account.apiKey,
-      },
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: controller.signal,
     });
     rawText = await res.text();
@@ -138,6 +145,22 @@ async function lookiMemoryGet(
   }
 
   return payload;
+}
+
+async function lookiMemoryGet(
+  cfg: OpenClawConfig,
+  path: string,
+  query: Record<string, string | number | boolean | undefined>,
+): Promise<JsonRecord> {
+  return lookiMemoryRequest(cfg, "GET", path, query);
+}
+
+async function lookiMemoryPost(
+  cfg: OpenClawConfig,
+  path: string,
+  body: JsonRecord,
+): Promise<JsonRecord> {
+  return lookiMemoryRequest(cfg, "POST", path, {}, body);
 }
 
 function safeStringify(value: unknown): string {
@@ -246,6 +269,30 @@ async function executeLookiMemoryAction(
           order_by: optionalStringParam(params, "order_by"),
         }),
       );
+    case "reminders":
+      return formatToolResult(
+        action,
+        await lookiMemoryGet(cfg, "reminders", {
+          status: optionalIntegerParam(params, "status", { min: 1, max: 3 }),
+          cursor_id: optionalStringParam(params, "cursor_id"),
+          limit: optionalIntegerParam(params, "limit", { min: 1, max: 100 }),
+        }),
+      );
+    case "reminder_openclaw": {
+      const reminderId = requireStringParam(params, "reminder_id");
+      const enabled = params.enabled;
+      if (typeof enabled !== "boolean") {
+        throw new Error("Parameter enabled must be a boolean");
+      }
+      return formatToolResult(
+        action,
+        await lookiMemoryPost(
+          cfg,
+          `reminders/${encodeURIComponent(reminderId)}/openclaw`,
+          { enabled },
+        ),
+      );
+    }
     default:
       throw new Error(`Unsupported looki_memory action: ${action satisfies never}`);
   }
@@ -256,7 +303,7 @@ export const LOOKI_MEMORY_TOOL_NAME = "looki_memory";
 export const LOOKI_MEMORY_TOOL_LABEL = "Looki Memory";
 
 export const LOOKI_MEMORY_TOOL_DESCRIPTION =
-  "Read Looki memory data using the configured channels.openclaw-looki baseUrl/apiKey. Supports profile, calendar, day timeline, moment detail, moment files, search, and highlights.";
+  "Read and manage Looki memory data using the configured channels.openclaw-looki baseUrl/apiKey. Supports profile, calendar, day timeline, moment detail, moment files, search, highlights, listing the user's reminders, and toggling the openclaw notification switch per reminder.";
 
 export const LOOKI_MEMORY_TOOL_PARAMETERS = {
   type: "object",
@@ -264,7 +311,17 @@ export const LOOKI_MEMORY_TOOL_PARAMETERS = {
   properties: {
     action: {
       type: "string",
-      enum: ["me", "calendar", "day", "moment", "moment_files", "search", "for_you"],
+      enum: [
+        "me",
+        "calendar",
+        "day",
+        "moment",
+        "moment_files",
+        "search",
+        "for_you",
+        "reminders",
+        "reminder_openclaw",
+      ],
       description: "Which Looki memory endpoint to query.",
     },
     start_date: { type: "string", description: "YYYY-MM-DD start date." },
@@ -289,6 +346,20 @@ export const LOOKI_MEMORY_TOOL_PARAMETERS = {
     order_by: {
       type: "string",
       description: "for_you sort field: created_at or recorded_at.",
+    },
+    status: {
+      type: "integer",
+      description:
+        "Reminder status filter for reminders action: 1=NOT_START, 2=IN_PROGRESS, 3=DONE.",
+    },
+    reminder_id: {
+      type: "string",
+      description: "Reminder item ID for reminder_openclaw action.",
+    },
+    enabled: {
+      type: "boolean",
+      description:
+        "For reminder_openclaw: true to enable openclaw notification, false to disable.",
     },
   },
   required: ["action"],
