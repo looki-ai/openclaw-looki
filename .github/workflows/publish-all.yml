@@ -32,10 +32,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Pre-fetch npm 11 via corepack
-        env:
-          COREPACK_ENABLE_STRICT: "0"
-        run: corepack prepare npm@11.5.1
+      - name: Install npm 11 (required for OIDC)
+        run: |
+          npm install -g npm@11.5.1
+          npm --version
 
       # --- plugin ---
       - name: Set plugin version
@@ -50,12 +50,11 @@ jobs:
 
       - name: Pack and publish plugin
         working-directory: packages/plugin
-        env:
-          COREPACK_ENABLE_STRICT: "0"
         run: |
+          echo "registry=https://registry.npmjs.org/" > "$NPM_CONFIG_USERCONFIG"
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed plugin: $TARBALL"
-          corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
+          npm publish --access public --provenance "$TARBALL"
 
       # --- CLI (same version, pins plugin to ^<version>) ---
       - name: Set CLI version + plugin dep range
@@ -77,12 +76,11 @@ jobs:
 
       - name: Pack and publish CLI
         working-directory: packages/cli
-        env:
-          COREPACK_ENABLE_STRICT: "0"
         run: |
+          echo "registry=https://registry.npmjs.org/" > "$NPM_CONFIG_USERCONFIG"
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed CLI: $TARBALL"
-          corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
+          npm publish --access public --provenance "$TARBALL"
 
       - name: Tag release
         env:

@@ -69,7 +69,7 @@ export async function chooseLocale(
   }
   // Use a neutral message key — we haven't committed to a locale yet.
   const guardCancel = makeGuardCancel(t);
-  const neutralMessage = `${MESSAGES["zh-CN"]["language.messageCli"]} / ${MESSAGES.en["language.messageCli"]}`;
+  const neutralMessage = `${MESSAGES.en["language.messageCli"]} / ${MESSAGES["zh-CN"]["language.messageCli"]}`;
   const next = guardCancel(
     await select<Locale>({
       message: neutralMessage,
