@@ -25,11 +25,7 @@
     "title": "环境选择",
     "note": "第一步：选择部署环境，对应写入 Looki 的 baseUrl。",
     "message": "请选择 Looki 环境",
-    "optionGlobal": "Global",
-    "optionChina": "China",
-    "optionCustom": "自定义",
-    "hintGlobal": "海外环境：https://open.looki.ai",
-    "hintChina": "中国大陆环境：https://open.looki.tech",
+    "optionCustom": "其他",
     "hintCustom": "手动填写 baseUrl（例如 dev 环境、自部署）",
     "customMessage": "填写自定义 Looki baseUrl（以 http:// 或 https:// 开头）",
     "customInvalid": "请输入合法的 http(s) URL"
@@ -66,21 +62,21 @@
     "backHint": "回到插件列表"
   },
   "feishu": {
-    "allowFromTitle": "飞书 / Lark 候选",
-    "allowFromDetected": "检测到现有飞书 / Lark allowFrom：{values}",
-    "allowFromEmpty": "未检测到飞书 / Lark allowFrom；此处无法校验目标 ID，建议先完成飞书插件配置",
+    "allowFromTitle": "Lark 候选",
+    "allowFromDetected": "检测到现有 Lark allowFrom：{values}",
+    "allowFromEmpty": "未检测到 Lark allowFrom；此处无法校验目标 ID，建议先完成 Lark 插件配置",
     "invalidAllowFrom": "请填写正确的 allowFrom",
-    "toMessage": "填写飞书 / Lark to（Esc 返回）"
+    "toMessage": "填写 Lark to（Esc 返回）"
   },
   "weixin": {
-    "accountsTitle": "微信 / WeChat 账号",
-    "accountsDetected": "检测到已登录微信账号：{values}",
-    "usersTitle": "微信 / WeChat 用户候选",
-    "usersDetected": "检测到可发送的微信用户 ID：{values}",
-    "targetHelpTitle": "微信 / WeChat 目标获取",
-    "targetHelp": "先完成微信登录，并让目标用户给微信 bot 发过消息；安装器会尝试从本地 context-tokens.json 自动读取 accountId 和可发送的 user_id 候选。",
-    "accountIdMessage": "填写微信 / WeChat accountId（Esc 返回）",
-    "toMessage": "填写微信 / WeChat to / user_id（Esc 返回）"
+    "accountsTitle": "WeChat 账号",
+    "accountsDetected": "检测到已登录 WeChat 账号：{values}",
+    "usersTitle": "WeChat 用户候选",
+    "usersDetected": "检测到可发送的 WeChat 用户 ID：{values}",
+    "targetHelpTitle": "WeChat 目标获取",
+    "targetHelp": "先完成 WeChat 登录，并让目标用户给 WeChat bot 发过消息；安装器会尝试从本地 context-tokens.json 自动读取 accountId 和可发送的 user_id 候选。",
+    "accountIdMessage": "填写 WeChat accountId（Esc 返回）",
+    "toMessage": "填写 WeChat to / user_id（Esc 返回）"
   },
   "qqbot": {
     "targetHelpTitle": "QQ Bot 目标获取",

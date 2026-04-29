@@ -34,19 +34,17 @@ export type ConfigureResult = {
   locale: Locale;
 };
 
-function normalizeBaseUrl(value: unknown): string {
-  const trimmed = String(value ?? "").trim();
-  if (trimmed === "A") return GLOBAL_BASE_URL;
-  if (trimmed === "B") return CHINA_BASE_URL;
-  return trimmed;
-}
-
 const CUSTOM_BASE_URL_VALUE = "__custom__";
 
 function getBaseUrlOptions(t: Translator) {
   return [
-    { label: t("env.optionGlobal"), value: GLOBAL_BASE_URL, hint: t("env.hintGlobal") },
-    { label: t("env.optionChina"), value: CHINA_BASE_URL, hint: t("env.hintChina") },
+    { label: "United States", value: GLOBAL_BASE_URL },
+    { label: "European Union", value: GLOBAL_BASE_URL },
+    { label: "United Kingdom", value: GLOBAL_BASE_URL },
+    { label: "Japan", value: GLOBAL_BASE_URL },
+    { label: "Canada", value: GLOBAL_BASE_URL },
+    { label: "Australia", value: GLOBAL_BASE_URL },
+    { label: "China", value: CHINA_BASE_URL },
     { label: t("env.optionCustom"), value: CUSTOM_BASE_URL_VALUE, hint: t("env.hintCustom") },
   ];
 }
@@ -107,9 +105,9 @@ export async function runConfigure(
   if (!baseUrl) {
     const guardCancel = makeGuardCancel(t);
     const baseUrlOptions = getBaseUrlOptions(t);
-    const currentBaseUrl = normalizeBaseUrl(
-      (existing.channels?.[CHANNEL_ID] as { baseUrl?: unknown } | undefined)?.baseUrl,
-    );
+    const currentBaseUrl = String(
+      (existing.channels?.[CHANNEL_ID] as { baseUrl?: unknown } | undefined)?.baseUrl ?? "",
+    ).trim();
     const presetMatch = baseUrlOptions.find(
       (option) => option.value !== CUSTOM_BASE_URL_VALUE && option.value === currentBaseUrl,
     );

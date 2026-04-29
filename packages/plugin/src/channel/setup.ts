@@ -35,8 +35,13 @@ const tw = createTranslator(MESSAGES, () => wizardLocale);
 
 function getBaseUrlOptions() {
   return [
-    { value: GLOBAL_BASE_URL, label: tw("env.optionGlobal"), hint: tw("env.hintGlobal") },
-    { value: CHINA_BASE_URL, label: tw("env.optionChina"), hint: tw("env.hintChina") },
+    { value: GLOBAL_BASE_URL, label: "United States" },
+    { value: GLOBAL_BASE_URL, label: "European Union" },
+    { value: GLOBAL_BASE_URL, label: "United Kingdom" },
+    { value: GLOBAL_BASE_URL, label: "Japan" },
+    { value: GLOBAL_BASE_URL, label: "Canada" },
+    { value: GLOBAL_BASE_URL, label: "Australia" },
+    { value: CHINA_BASE_URL, label: "China" },
   ];
 }
 
@@ -420,7 +425,6 @@ export const lookiSetupWizard: ChannelSetupWizard = {
       options: baseUrlOptions.map((option) => ({
         value: option.value,
         label: option.label,
-        hint: option.hint,
       })),
       initialValue: initialBaseUrl,
     });
