@@ -53,6 +53,9 @@ jobs:
         env:
           COREPACK_ENABLE_STRICT: "0"
         run: |
+          rm -f "$NPM_CONFIG_USERCONFIG" ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
+          unset NODE_AUTH_TOKEN
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed plugin: $TARBALL"
           corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
@@ -80,6 +83,9 @@ jobs:
         env:
           COREPACK_ENABLE_STRICT: "0"
         run: |
+          rm -f "$NPM_CONFIG_USERCONFIG" ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
+          unset NODE_AUTH_TOKEN
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed CLI: $TARBALL"
           corepack npm@11.5.1 publish --access public --provenance "$TARBALL"
