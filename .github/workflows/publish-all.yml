@@ -53,9 +53,14 @@ jobs:
         run: |
           echo "npm version: $(npm --version)"
           echo "registry=https://registry.npmjs.org/" > "$NPM_CONFIG_USERCONFIG"
+          echo "--- userconfig ---"
+          cat "$NPM_CONFIG_USERCONFIG"
+          echo "--- oidc env ---"
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL:+set}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set}"
           TARBALL=$(pnpm pack | tail -n1)
           echo "Packed plugin: $TARBALL"
-          npm publish --access public --provenance "$TARBALL"
+          npm publish --access public --provenance --loglevel verbose "$TARBALL"
 
       # --- CLI (same version, pins plugin to ^<version>) ---
       - name: Set CLI version + plugin dep range
