@@ -1,9 +1,9 @@
 /**
  * Looki exposes two upstream shapes:
- *   - prod   (https://open.looki.ai)   channel under /openclaw/   tools under /api/v1/
- *   - local  (http://127.0.0.1:9001)   channel under /openclaw-looki/   tools under /agents/
+ *   - prod   (https://open.looki.ai)   channel under /message-channel/   tools under /api/v1/
+ *   - local  (http://127.0.0.1:9001)   channel under /message-channel/   tools under /agents/
  *
- * We pick the prefix by hostname so the user only ever configures a single
+ * We pick the tool prefix by hostname so the user only ever configures a single
  * `channels.openclaw-looki.baseUrl` and both the getupdates poller and the
  * memory tool target the correct upstream paths.
  */
@@ -28,10 +28,8 @@ function isLocalHost(hostname: string): boolean {
 export type LookiEndpointKind = "channel" | "tool";
 
 function getPrefix(hostname: string, kind: LookiEndpointKind): string {
-  if (isLocalHost(hostname)) {
-    return kind === "channel" ? "openclaw-looki" : "agents";
-  }
-  return kind === "channel" ? "openclaw" : "api/v1";
+  if (kind === "channel") return "message-channel";
+  return isLocalHost(hostname) ? "agents" : "api/v1";
 }
 
 /**
@@ -39,7 +37,14 @@ function getPrefix(hostname: string, kind: LookiEndpointKind): string {
  * included `/openclaw-looki` or `/api/v1` in baseUrl). We always rebuild from
  * the host root so adding kind-specific prefix behavior here stays consistent.
  */
-const KNOWN_LEGACY_PREFIXES = new Set(["/", "/openclaw", "/openclaw-looki", "/api/v1", "/agents"]);
+const KNOWN_LEGACY_PREFIXES = new Set([
+  "/",
+  "/message-channel",
+  "/openclaw",
+  "/openclaw-looki",
+  "/api/v1",
+  "/agents",
+]);
 const warnedBaseUrls = new Set<string>();
 
 export function normalizeLookiBaseUrl(rawBaseUrl: string): string {

@@ -23,7 +23,7 @@ export type GetUpdatesResponse = {
 };
 
 export type GetUpdatesParams = {
-  baseUrl: string; // e.g. http://localhost:9001/openclaw-looki
+  baseUrl: string; // e.g. http://localhost:9001/message-channel
   /** Looki user API key (e.g. "lk-..."). Server resolves the user + their
    *  active subscription from this alone — no sub-id required. */
   apiKey: string;
