@@ -288,7 +288,7 @@ async function executeLookiMemoryAction(
         action,
         await lookiMemoryPost(
           cfg,
-          `reminders/${encodeURIComponent(reminderId)}/openclaw`,
+          `reminders/${encodeURIComponent(reminderId)}/message-channel`,
           { enabled },
         ),
       );
