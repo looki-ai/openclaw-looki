@@ -1,33 +1,42 @@
 import { CHANNEL_ID } from "./constants.js";
 import type { OpenClawConfigShape } from "./config.js";
 import { type SupportedForwardPlugin, defaultForwardAccountId } from "./forward-plugins.js";
-import { getExistingFeishuAllowFrom, isValidFeishuTo } from "./discovery.js";
+import {
+  getExistingFeishuAllowFrom,
+  isValidFeishuTo,
+  type ForwardPeerKind,
+} from "./discovery.js";
 
 export type ForwardDraftMap = Record<string, string>;
+
+export type ForwardDraftPeerKindMap = Record<string, ForwardPeerKind | undefined>;
 
 export type ForwardDraftTarget = {
   channel: string;
   accountId?: string;
   to: string;
+  peerKind?: ForwardPeerKind;
 };
 
-function readExistingForwardTargets(
-  cfg: OpenClawConfigShape,
-): Array<{ channel?: string; accountId?: string; to?: string }> {
+type ExistingForwardEntry = {
+  channel?: string;
+  accountId?: string;
+  to?: string;
+  peerKind?: unknown;
+};
+
+function readExistingForwardTargets(cfg: OpenClawConfigShape): ExistingForwardEntry[] {
   const channels = cfg.channels ?? {};
   const section = channels[CHANNEL_ID] as { forwardTo?: unknown } | undefined;
   return Array.isArray(section?.forwardTo)
-    ? (section!.forwardTo as Array<{ channel?: string; accountId?: string; to?: string }>)
+    ? (section!.forwardTo as ExistingForwardEntry[])
     : [];
 }
 
 function matchExistingByChannel<T>(
   cfg: OpenClawConfigShape,
   availableTargets: readonly SupportedForwardPlugin[],
-  selector: (
-    matched: { channel?: string; accountId?: string; to?: string } | null,
-    target: SupportedForwardPlugin,
-  ) => T,
+  selector: (matched: ExistingForwardEntry | null, target: SupportedForwardPlugin) => T,
 ): Record<string, T> {
   const currentTargets = readExistingForwardTargets(cfg);
   const usedIndexes = new Set<number>();
@@ -60,6 +69,17 @@ export function buildInitialDraftAccountIds(
     availableTargets,
     (matched, target) => matched?.accountId || defaultForwardAccountId(target) || "",
   );
+}
+
+export function buildInitialDraftPeerKinds(
+  cfg: OpenClawConfigShape,
+  availableTargets: readonly SupportedForwardPlugin[],
+): ForwardDraftPeerKindMap {
+  return matchExistingByChannel(cfg, availableTargets, (matched) => {
+    const raw = matched?.peerKind;
+    if (raw === "direct" || raw === "group") return raw;
+    return undefined;
+  });
 }
 
 export function isForwardTargetDraftValid(
@@ -97,16 +117,19 @@ export function buildForwardTargetsFromDraft(
   validTargetIds: readonly string[],
   draftValues: ForwardDraftMap,
   draftAccountIds: ForwardDraftMap,
+  draftPeerKinds: ForwardDraftPeerKindMap = {},
 ): ForwardDraftTarget[] {
   const validSet = new Set(validTargetIds);
   return availableTargets
     .filter((target) => validSet.has(target.id))
     .map((target) => {
       const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
+      const peerKind = draftPeerKinds[target.id];
       return {
         channel: target.channel,
         ...(accountId ? { accountId } : {}),
         to: draftValues[target.id],
+        ...(peerKind ? { peerKind } : {}),
       };
     });
 }

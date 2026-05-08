@@ -3,6 +3,7 @@ import { isCancel, note, select, text } from "@clack/prompts";
 import {
   buildForwardTargetsFromDraft,
   buildInitialDraftAccountIds,
+  buildInitialDraftPeerKinds,
   buildInitialDraftValues,
   computeInitialValidTargetIds,
   defaultForwardAccountId,
@@ -16,9 +17,12 @@ import {
   getWhatsappKnownTargets,
   isForwardTargetDraftValid,
   isValidFeishuTo,
+  lookupKnownPeerKind,
   readFeishuAllowFrom,
   type ForwardDraftMap,
+  type ForwardDraftPeerKindMap,
   type ForwardDraftTarget,
+  type ForwardPeerKind,
   type SupportedForwardPlugin,
 } from "@looki-ai/openclaw-looki/shared";
 
@@ -28,7 +32,22 @@ import { makeGuardCancel } from "./ui.js";
 
 type DraftMap = ForwardDraftMap;
 
+type PeerKindMap = ForwardDraftPeerKindMap;
+
 type ForwardTarget = ForwardDraftTarget;
+
+/**
+ * Channels where `peerKind` is ambiguous and must be resolved (direct vs group).
+ * openclaw-weixin is always direct; feishu is represented here because its `to`
+ * can be either `ou_xxx` (user) or `oc_xxx` (group chat).
+ */
+const PEER_KIND_APPLICABLE = new Set<string>([
+  "discord",
+  "telegram",
+  "whatsapp",
+  "qqbot",
+  "feishu",
+]);
 
 async function promptTextOrBack(
   message: string,
@@ -67,6 +86,7 @@ export async function runForwardWizard(
   const existingAllowFrom = readFeishuAllowFrom(config);
   const draftValues = buildInitialDraftValues(config, availableTargets);
   const draftAccountIds = buildInitialDraftAccountIds(config, availableTargets);
+  const draftPeerKinds: PeerKindMap = buildInitialDraftPeerKinds(config, availableTargets);
   const validTargetIds = new Set(
     computeInitialValidTargetIds(availableTargets, draftValues, draftAccountIds, existingAllowFrom),
   );
@@ -79,6 +99,34 @@ export async function runForwardWizard(
     } else {
       validTargetIds.delete(target.id);
     }
+  };
+
+  const applyPeerKind = async (target: SupportedForwardPlugin): Promise<void> => {
+    if (!PEER_KIND_APPLICABLE.has(target.channel)) {
+      delete draftPeerKinds[target.id];
+      return;
+    }
+    const to = draftValues[target.id] ?? "";
+    const known = lookupKnownPeerKind({
+      channel: target.channel,
+      to,
+      accountId: draftAccountIds[target.id],
+    });
+    if (known) {
+      draftPeerKinds[target.id] = known;
+      return;
+    }
+    const initial: ForwardPeerKind = draftPeerKinds[target.id] ?? "direct";
+    draftPeerKinds[target.id] = guardCancel(
+      await select<ForwardPeerKind>({
+        message: t("peerKind.message", { label: target.label }),
+        options: [
+          { value: "direct", label: t("peerKind.direct"), hint: t("peerKind.directHint") },
+          { value: "group", label: t("peerKind.group"), hint: t("peerKind.groupHint") },
+        ],
+        initialValue: initial,
+      }),
+    );
   };
 
   while (true) {
@@ -105,6 +153,7 @@ export async function runForwardWizard(
         [...validTargetIds],
         draftValues,
         draftAccountIds,
+        draftPeerKinds,
       );
     }
 
@@ -117,6 +166,7 @@ export async function runForwardWizard(
     if (action === "clear") {
       draftValues[target.id] = "";
       draftAccountIds[target.id] = defaultForwardAccountId(target) || "";
+      delete draftPeerKinds[target.id];
       validTargetIds.delete(target.id);
       continue;
     }
@@ -157,6 +207,7 @@ export async function runForwardWizard(
       draftAccountIds[target.id] = value.accountId;
     }
 
+    await applyPeerKind(target);
     refreshValidity(target);
   }
 }

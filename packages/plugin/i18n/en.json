@@ -108,6 +108,13 @@
     "accountIdMessage": "Enter {label} accountId (optional, Esc to go back)",
     "toMessage": "Enter {label} to (Esc to go back)"
   },
+  "peerKind": {
+    "message": "Is the {label} target a direct chat or a group?",
+    "direct": "Direct chat",
+    "directHint": "One-to-one DM with a user",
+    "group": "Group / channel",
+    "groupHint": "Multi-user group, channel, or thread"
+  },
   "forward": {
     "targetMessage": "Choose chat plugins for Agent output forwarding",
     "doneLabel": "Done",

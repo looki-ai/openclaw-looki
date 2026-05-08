@@ -5,5 +5,6 @@ export * from "./config.js";
 export * from "./discovery.js";
 export * from "./forward-draft.js";
 export * from "./version.js";
+export * from "./http_util.js";
 export * from "./sanitize.js";
 export * from "./url.js";

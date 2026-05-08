@@ -108,6 +108,13 @@
     "accountIdMessage": "Saisissez l'accountId {label} (optionnel, Échap pour revenir)",
     "toMessage": "Saisissez la cible {label} (Échap pour revenir)"
   },
+  "peerKind": {
+    "message": "La cible {label} est-elle un chat direct ou un groupe ?",
+    "direct": "Chat direct",
+    "directHint": "Conversation privée avec un utilisateur",
+    "group": "Groupe / canal",
+    "groupHint": "Groupe multi-utilisateurs, canal ou fil"
+  },
   "forward": {
     "targetMessage": "Choisissez les plugins de chat pour le transfert de la sortie de l'agent",
     "doneLabel": "Terminé",

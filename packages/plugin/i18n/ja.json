@@ -108,6 +108,13 @@
     "accountIdMessage": "{label} の accountId を入力してください (任意、Esc で戻る)",
     "toMessage": "{label} の転送先を入力してください (Esc で戻る)"
   },
+  "peerKind": {
+    "message": "{label} の転送先は個別チャットですか、それともグループですか？",
+    "direct": "個別チャット",
+    "directHint": "ユーザーとの 1 対 1 の DM",
+    "group": "グループ / チャンネル",
+    "groupHint": "複数人グループ、チャンネル、またはスレッド"
+  },
   "forward": {
     "targetMessage": "Agent の出力を転送するチャットプラグインを選択してください",
     "doneLabel": "完了",

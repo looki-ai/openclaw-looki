@@ -158,6 +158,7 @@ async function processLookiEvent(event: LookiEventEnvelope, deps: ProcessDeps): 
         cfg: deps.config,
         forwardTo: deps.forwardTo ?? [],
         channelRuntime: deps.channelRuntime,
+        idempotencyKey: event.id,
         log: deps.log,
         errLog: deps.errLog,
       });
@@ -234,6 +235,7 @@ async function processLookiEvent(event: LookiEventEnvelope, deps: ProcessDeps): 
           cfg: deps.config,
           forwardTo: deps.forwardTo ?? [],
           channelRuntime: deps.channelRuntime,
+          idempotencyKey: event.id,
           log: deps.log,
           errLog: deps.errLog,
         });

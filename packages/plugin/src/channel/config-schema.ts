@@ -13,6 +13,7 @@ const LookiForwardTargetSchema = z
     channel: z.string().min(1),
     accountId: z.string().min(1).optional(),
     to: z.string().min(1),
+    peerKind: z.enum(["direct", "group"]).optional(),
   })
   .strict();
 

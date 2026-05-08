@@ -1,39 +1,39 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import {
+  buildOutboundSessionContext,
+  deliverOutboundPayloads,
+  type DeliverOutboundPayloadsParams,
+} from "openclaw/plugin-sdk/outbound-runtime";
 
-import type { LookiForwardTarget } from "./types.js";
+import type { LookiForwardPeerKind, LookiForwardTarget } from "./types.js";
 
-export type ForwardOutboundAdapter = {
-  sendText?: (ctx: {
-    cfg: OpenClawConfig;
-    to: string;
-    text: string;
-    accountId?: string | null;
-  }) => Promise<{ channel?: string; messageId?: string; meta?: unknown } | void>;
-};
+type OutboundChannel = DeliverOutboundPayloadsParams["channel"];
 
 /**
- * The subset of OpenClaw's channel runtime this plugin consumes. Only
- * `outbound.loadAdapter` is required today; everything else is ignored.
+ * The subset of OpenClaw's channel runtime this plugin consumes. Requires the
+ * routing helper shipped in openclaw >= 2026.4.24 so that forwarded agent
+ * replies are mirrored into the target session's transcript.
  */
 export type ForwardChannelRuntime = {
-  outbound?: {
-    loadAdapter?: (channel: string) => Promise<ForwardOutboundAdapter | undefined>;
+  routing: {
+    resolveAgentRoute: (params: {
+      cfg: OpenClawConfig;
+      channel: string;
+      accountId?: string | null;
+      peer: { kind: LookiForwardPeerKind; id: string };
+    }) => {
+      agentId?: string;
+      sessionKey?: string;
+      mainSessionKey?: string;
+    };
   };
-};
-
-const INSTALL_HINTS: Record<string, string> = {
-  whatsapp: "install @openclaw/whatsapp",
-  telegram: "install @openclaw/telegram",
-  discord: "install @openclaw/discord",
-  feishu: "install @larksuite/openclaw-lark",
-  "openclaw-weixin": "install @tencent-weixin/openclaw-weixin",
-  qqbot: "install @openclaw/qqbot",
 };
 
 export type ForwardDeps = {
   cfg: OpenClawConfig;
   forwardTo: LookiForwardTarget[];
-  channelRuntime?: ForwardChannelRuntime;
+  channelRuntime: ForwardChannelRuntime;
+  idempotencyKey?: string;
   log: (msg: string) => void;
   errLog: (msg: string) => void;
 };
@@ -46,27 +46,47 @@ async function sendToTarget(
   target: LookiForwardTarget,
   text: string,
   cfg: OpenClawConfig,
-  runtime: ForwardChannelRuntime | undefined,
+  runtime: ForwardChannelRuntime,
+  idempotencyKey: string | undefined,
 ): Promise<void> {
-  const loadAdapter = runtime?.outbound?.loadAdapter;
-  if (!loadAdapter) {
-    throw new Error(
-      "OpenClaw runtime does not expose channel.outbound.loadAdapter; upgrade OpenClaw to >=2026.4.24 and restart the gateway",
-    );
-  }
-  const adapter = await loadAdapter(target.channel);
-  if (!adapter?.sendText) {
-    const hint = INSTALL_HINTS[target.channel];
-    const suffix = hint ? `; ${hint}` : "";
-    throw new Error(
-      `${target.channel} outbound adapter is unavailable${suffix}; ensure the channel plugin is installed, enabled, configured, and the gateway was restarted`,
-    );
-  }
-  await adapter.sendText({
+  const peerKind: LookiForwardPeerKind = target.peerKind ?? "direct";
+
+  const route = runtime.routing.resolveAgentRoute({
     cfg,
-    to: target.to,
-    text,
+    channel: target.channel,
     accountId: target.accountId,
+    peer: { kind: peerKind, id: target.to },
+  });
+  const sessionKey = route?.sessionKey;
+  if (!sessionKey) {
+    throw new Error(
+      `resolveAgentRoute returned no sessionKey for ${formatTarget(target)} kind=${peerKind}`,
+    );
+  }
+
+  await deliverOutboundPayloads({
+    cfg,
+    channel: target.channel as OutboundChannel,
+    to: target.to,
+    accountId: target.accountId,
+    payloads: [{ text }],
+    session: buildOutboundSessionContext({
+      cfg,
+      agentId: route.agentId,
+      sessionKey,
+      conversationType: peerKind,
+    }),
+    mirror: {
+      sessionKey,
+      agentId: route.agentId,
+      text,
+      isGroup: peerKind === "group",
+      idempotencyKey: idempotencyKey
+        ? `openclaw-looki:forward:${target.channel}:${target.accountId ?? "default"}:${
+            target.to
+          }:${idempotencyKey}`
+        : undefined,
+    },
   });
 }
 
@@ -79,7 +99,7 @@ export async function forwardAgentOutput(text: string, deps: ForwardDeps): Promi
   await Promise.all(
     deps.forwardTo.map(async (target) => {
       try {
-        await sendToTarget(target, text, deps.cfg, deps.channelRuntime);
+        await sendToTarget(target, text, deps.cfg, deps.channelRuntime, deps.idempotencyKey);
         deps.log(`[openclaw-looki] forwarded to ${formatTarget(target)} len=${text.length}`);
       } catch (err) {
         deps.errLog(`[openclaw-looki] forward to ${formatTarget(target)} failed: ${String(err)}`);

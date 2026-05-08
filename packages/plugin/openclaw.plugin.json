@@ -94,6 +94,11 @@
                 "to": {
                   "type": "string",
                   "minLength": 1
+                },
+                "peerKind": {
+                  "type": "string",
+                  "enum": ["direct", "group"],
+                  "description": "Whether `to` is a direct chat or a group. Defaults to direct."
                 }
               },
               "required": [

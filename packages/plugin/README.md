@@ -44,7 +44,7 @@ Add this to `~/.openclaw/openclaw.json`:
       "maxEvents": 10,
       "forwardTo": [
         { "channel": "telegram",        "accountId": "default",           "to": "123456789" },
-        { "channel": "discord",         "accountId": "default",           "to": "channel_id" },
+        { "channel": "discord",         "accountId": "default",           "to": "channel_id",        "peerKind": "group" },
         { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx" }
       ]
     }
@@ -62,7 +62,7 @@ Fields:
 | `accountId`     | no       | `"default"`             | Identifier for the OpenClaw session/conversation                       |
 | `pollTimeoutMs` | no       | `30000`                 | Long-poll timeout (ms). Server caps at 30s                             |
 | `maxEvents`     | no       | `10`                    | Max events pulled per poll, 1–100                                      |
-| `forwardTo`     | no       | —                       | Array of `{channel, accountId?, to}` for fan-out of the agent's reply  |
+| `forwardTo`     | no       | —                       | Array of `{channel, accountId?, to, peerKind?}` for fan-out of the agent's reply  |
 
 > Structural config errors (unknown fields, wrong types, out-of-range values)
 > cause the channel to **throw on startup** instead of silently falling back,
@@ -70,9 +70,11 @@ Fields:
 
 ## Forwarding (`forwardTo`)
 
-`forwardTo` goes through OpenClaw's runtime outbound adapter, so each target
+`forwardTo` goes through OpenClaw's runtime outbound delivery, so each target
 channel's plugin has to be **installed, configured, and the gateway
-restarted** first.
+restarted** first. Forwarded replies are mirrored into the target session's
+transcript, so the agent's message also shows up in the destination channel's
+chat history in OpenClaw (not just as a raw outbound send).
 
 | channel           | Plugin                            | `to` format                                                    |
 | ----------------- | --------------------------------- | -------------------------------------------------------------- |
@@ -103,6 +105,9 @@ Notes:
 - Provide `accountId` if the downstream plugin has multiple accounts, else
   OpenClaw falls back to `default`
 - `to` must be a real channel-side id, not a display name
+- `peerKind` defaults to `"direct"`. Set `"group"` when `to` is a group /
+  channel id (e.g. Discord channel id, Telegram group id, Lark `oc_...`
+  chat_id) so the mirrored transcript lands in the correct session
 - Each target is `try/catch` isolated; one failing downstream will not block
   others
 - Only the agent's `final` reply is forwarded — streaming block fragments

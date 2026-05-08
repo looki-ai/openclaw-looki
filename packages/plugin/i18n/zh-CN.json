@@ -108,6 +108,13 @@
     "accountIdMessage": "填写 {label} accountId（可选，Esc 返回）",
     "toMessage": "填写 {label} to（Esc 返回）"
   },
+  "peerKind": {
+    "message": "{label} 的转发目标是私聊还是群聊？",
+    "direct": "私聊",
+    "directHint": "与用户一对一的私聊",
+    "group": "群聊 / 频道",
+    "groupHint": "多人群组、频道或话题"
+  },
   "forward": {
     "targetMessage": "请选择需要转发 Agent 输出的聊天插件",
     "doneLabel": "完成",
