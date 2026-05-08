@@ -10,6 +10,13 @@ import {
   LOOKI_MEMORY_TOOL_PARAMETERS,
   makeLookiMemoryExecute,
 } from "./src/tools/memory-tool.js";
+import {
+  LOOKI_REMINDER_TOOL_DESCRIPTION,
+  LOOKI_REMINDER_TOOL_LABEL,
+  LOOKI_REMINDER_TOOL_NAME,
+  LOOKI_REMINDER_TOOL_PARAMETERS,
+  makeLookiReminderExecute,
+} from "./src/tools/reminder-tool.js";
 
 export default {
   id: "openclaw-looki",
@@ -26,6 +33,13 @@ export default {
       description: LOOKI_MEMORY_TOOL_DESCRIPTION,
       parameters: LOOKI_MEMORY_TOOL_PARAMETERS,
       execute: makeLookiMemoryExecute(() => api.config, api.logger),
+    });
+    api.registerTool({
+      name: LOOKI_REMINDER_TOOL_NAME,
+      label: LOOKI_REMINDER_TOOL_LABEL,
+      description: LOOKI_REMINDER_TOOL_DESCRIPTION,
+      parameters: LOOKI_REMINDER_TOOL_PARAMETERS,
+      execute: makeLookiReminderExecute(() => api.config, api.logger),
     });
     api.registerChannel({ plugin: lookiPlugin });
   },

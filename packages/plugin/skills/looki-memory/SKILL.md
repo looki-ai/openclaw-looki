@@ -30,6 +30,9 @@ Use the `looki_memory` tool whenever the user wants information from their Looki
 - The user wants to search memories by topic
 - The user wants AI-generated highlights or recaps
 - The user asks profile questions based on their Looki account
+- The user asks "what's happening right now" or wants the latest realtime event from their Looki device (beta; requires proactive mode)
+
+For listing reminders or toggling the openclaw notification switch per reminder, use the `looki-reminder` skill instead.
 
 ## Tool mapping
 
@@ -134,6 +137,18 @@ Optional:
 - `created_to`
 - `cursor_id`
 - `order_by`
+
+### 8. Latest realtime event (beta)
+
+Use when the user asks what is happening right now. Requires proactive mode enabled on the device.
+
+```json
+{
+  "action": "realtime_latest"
+}
+```
+
+No extra parameters.
 
 ## Behavior
 
