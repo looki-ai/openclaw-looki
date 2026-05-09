@@ -14,6 +14,8 @@ const LookiForwardTargetSchema = z
     accountId: z.string().min(1).optional(),
     to: z.string().min(1),
     sessionKey: z.string().min(1),
+    peerKind: z.enum(["direct", "group"]),
+    agentId: z.string().min(1).optional(),
   })
   .strict();
 

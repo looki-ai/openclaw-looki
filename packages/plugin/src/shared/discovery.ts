@@ -77,6 +77,8 @@ export type ForwardSessionCandidate = {
   label?: string;
   /** Full session key — kept for display so users recognise it. */
   sessionKey: string;
+  /** OpenClaw agent id owning this session (from the session key). */
+  agentId?: string;
 };
 
 /**
@@ -86,13 +88,14 @@ export type ForwardSessionCandidate = {
  */
 function parseSessionKeyPeer(
   sessionKey: string,
-): { peerKind: ForwardPeerKind; peerId: string } | undefined {
+): { peerKind: ForwardPeerKind; peerId: string; agentId?: string } | undefined {
   const parts = sessionKey.split(":");
+  const agentId = parts[1] || undefined;
   const rawKind = parts[3]?.toLowerCase();
   const peerId = parts.slice(4).join(":");
   if (!peerId) return undefined;
-  if (rawKind === "direct") return { peerKind: "direct", peerId };
-  if (rawKind === "group" || rawKind === "channel") return { peerKind: "group", peerId };
+  if (rawKind === "direct") return { peerKind: "direct", peerId, agentId };
+  if (rawKind === "group" || rawKind === "channel") return { peerKind: "group", peerId, agentId };
   return undefined;
 }
 
@@ -140,6 +143,7 @@ export function listForwardSessionsForChannel(channel: string): ForwardSessionCa
       peerId: sessionPeer.peerId,
       ...(label ? { label } : {}),
       sessionKey,
+      ...(sessionPeer.agentId ? { agentId: sessionPeer.agentId } : {}),
     });
   }
 

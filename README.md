@@ -72,8 +72,8 @@ Fields:
 
 `forwardTo` goes through OpenClaw's runtime outbound delivery, so each target
 channel's plugin has to be **installed, configured, and the gateway
-restarted** first. When `sessionKey` is present, direct/group routing is
-derived from the selected OpenClaw session.
+restarted** first. Setup writes `sessionKey`; every target must point at an
+existing OpenClaw session.
 
 | channel           | Plugin                            | `to` format                                                    |
 | ----------------- | --------------------------------- | -------------------------------------------------------------- |
