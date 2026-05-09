@@ -11,7 +11,7 @@ export type LookiChannelConfig = {
     channel: string;
     accountId?: string;
     to: string;
-    peerKind?: "direct" | "group";
+    sessionKey: string;
   }>;
 };
 

@@ -7,8 +7,8 @@ export type LookiForwardTarget = {
   accountId?: string;
   /** Recipient in the destination channel (e.g. open_id for Feishu/Lark, or group chat id). */
   to: string;
-  /** Whether `to` refers to a direct chat or a group. Defaults to "direct". */
-  peerKind?: LookiForwardPeerKind;
+  /** OpenClaw session key selected during setup. Used to derive direct/group. */
+  sessionKey: string;
 };
 
 export function normalizeForwardTargets(value: unknown): LookiForwardTarget[] {
@@ -26,13 +26,13 @@ export function normalizeForwardTargets(value: unknown): LookiForwardTarget[] {
       typeof maybeTarget.accountId === "string" && maybeTarget.accountId.trim()
         ? maybeTarget.accountId.trim()
         : undefined;
-    const peerKind: LookiForwardPeerKind | undefined =
-      maybeTarget.peerKind === "group" || maybeTarget.peerKind === "direct"
-        ? maybeTarget.peerKind
+    const sessionKey =
+      typeof maybeTarget.sessionKey === "string" && maybeTarget.sessionKey.trim()
+        ? maybeTarget.sessionKey.trim()
         : undefined;
 
-    if (!channel || !to) continue;
-    targets.push({ channel, to, accountId, peerKind });
+    if (!channel || !to || !sessionKey) continue;
+    targets.push({ channel, to, accountId, sessionKey });
   }
 
   return targets;

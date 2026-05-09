@@ -9,11 +9,6 @@ import type { LookiForwardPeerKind, LookiForwardTarget } from "./types.js";
 
 type OutboundChannel = DeliverOutboundPayloadsParams["channel"];
 
-/**
- * The subset of OpenClaw's channel runtime this plugin consumes. Requires the
- * routing helper shipped in openclaw >= 2026.4.24 so that forwarded agent
- * replies are mirrored into the target session's transcript.
- */
 export type ForwardChannelRuntime = {
   routing: {
     resolveAgentRoute: (params: {
@@ -42,6 +37,19 @@ function formatTarget(target: LookiForwardTarget): string {
   return `${target.channel}:${target.accountId ?? "default"}:${target.to}`;
 }
 
+function parseSessionKey(sessionKey: string): { agentId?: string; peerKind?: LookiForwardPeerKind } {
+  const parts = sessionKey.split(":");
+  const agentId = parts[1] || undefined;
+  const rawKind = parts[3]?.toLowerCase();
+  const peerKind =
+    rawKind === "group" || rawKind === "channel"
+      ? "group"
+      : rawKind === "direct"
+        ? "direct"
+        : undefined;
+  return { agentId, peerKind };
+}
+
 async function sendToTarget(
   target: LookiForwardTarget,
   text: string,
@@ -49,7 +57,11 @@ async function sendToTarget(
   runtime: ForwardChannelRuntime,
   idempotencyKey: string | undefined,
 ): Promise<void> {
-  const peerKind: LookiForwardPeerKind = target.peerKind ?? "direct";
+  const parsedSession = parseSessionKey(target.sessionKey);
+  const peerKind = parsedSession.peerKind;
+  if (!peerKind) {
+    throw new Error(`invalid sessionKey for ${formatTarget(target)}: cannot derive direct/group`);
+  }
 
   const route = runtime.routing.resolveAgentRoute({
     cfg,
@@ -57,12 +69,7 @@ async function sendToTarget(
     accountId: target.accountId,
     peer: { kind: peerKind, id: target.to },
   });
-  const sessionKey = route?.sessionKey;
-  if (!sessionKey) {
-    throw new Error(
-      `resolveAgentRoute returned no sessionKey for ${formatTarget(target)} kind=${peerKind}`,
-    );
-  }
+  const sessionKey = target.sessionKey;
 
   await deliverOutboundPayloads({
     cfg,
@@ -72,13 +79,13 @@ async function sendToTarget(
     payloads: [{ text }],
     session: buildOutboundSessionContext({
       cfg,
-      agentId: route.agentId,
+      agentId: route.agentId ?? parsedSession.agentId,
       sessionKey,
       conversationType: peerKind,
     }),
     mirror: {
       sessionKey,
-      agentId: route.agentId,
+      agentId: route.agentId ?? parsedSession.agentId,
       text,
       isGroup: peerKind === "group",
       idempotencyKey: idempotencyKey

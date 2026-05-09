@@ -95,15 +95,16 @@
                   "type": "string",
                   "minLength": 1
                 },
-                "peerKind": {
+                "sessionKey": {
                   "type": "string",
-                  "enum": ["direct", "group"],
-                  "description": "Whether `to` is a direct chat or a group. Defaults to direct."
+                  "minLength": 1,
+                  "description": "OpenClaw session key selected by setup. Used to derive direct/group routing."
                 }
               },
               "required": [
                 "channel",
-                "to"
+                "to",
+                "sessionKey"
               ]
             }
           }

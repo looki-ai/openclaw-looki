@@ -99,7 +99,7 @@ function parseSessionKeyPeer(
 /**
  * Scan `sessions.json` for peers the bot has interacted with on the given
  * provider. Each session key already encodes channel + direct/group + peer id,
- * so we can derive the full forward target (including peerKind) without asking
+ * so we can derive the full forward target without asking
  * the user. Duplicate entries (same accountId + to) are collapsed.
  */
 export function listForwardSessionsForChannel(channel: string): ForwardSessionCandidate[] {

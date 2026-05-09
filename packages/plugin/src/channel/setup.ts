@@ -18,11 +18,10 @@ import {
   listForwardSessionsForChannel,
   buildInitialDraftValues,
   buildInitialDraftAccountIds,
-  buildInitialDraftPeerKinds,
+  buildInitialDraftSessionKeys,
   buildForwardTargetsFromDraft,
   computeInitialValidTargetIds,
   type ForwardDraftMap,
-  type ForwardDraftPeerKindMap,
   type ForwardSessionCandidate,
 } from "../shared/index.js";
 
@@ -70,20 +69,17 @@ async function configureForwardTargets(params: {
   const cfgShape = cfg as Parameters<typeof buildInitialDraftValues>[0];
   const draftValues: ForwardDraftMap = buildInitialDraftValues(cfgShape, availableTargets);
   const draftAccountIds: ForwardDraftMap = buildInitialDraftAccountIds(cfgShape, availableTargets);
-  const draftPeerKinds: ForwardDraftPeerKindMap = buildInitialDraftPeerKinds(
-    cfgShape,
-    availableTargets,
+  const draftSessionKeys: ForwardDraftMap = buildInitialDraftSessionKeys(cfgShape, availableTargets);
+  const validTargetIds = new Set(
+    computeInitialValidTargetIds(availableTargets, draftValues, draftSessionKeys),
   );
-  const validTargetIds = new Set(computeInitialValidTargetIds(availableTargets, draftValues));
   const doneValue = "__done__";
 
   const currentHint = (target: SupportedForwardPlugin): string => {
     const to = draftValues[target.id];
     if (!to) return tw("forward.emptyHint");
     const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
-    const peerKind = draftPeerKinds[target.id];
     const bits = [to];
-    if (peerKind) bits.push(peerKind);
     if (accountId && accountId !== "default") bits.push(`@ ${accountId}`);
     return tw("forward.configuredHint", { value: bits.join(" · ") });
   };
@@ -120,7 +116,7 @@ async function configureForwardTargets(params: {
         [...validTargetIds],
         draftValues,
         draftAccountIds,
-        draftPeerKinds,
+        draftSessionKeys,
       );
     }
 
@@ -149,10 +145,13 @@ async function configureForwardTargets(params: {
       hint: tw("action.backHint"),
     });
 
+    const currentSessionKey = draftSessionKeys[target.id];
     const currentTo = draftValues[target.id];
-    const matchedIndex = currentTo
-      ? sessions.findIndex((entry) => entry.to === currentTo || entry.peerId === currentTo)
-      : -1;
+    const matchedIndex = currentSessionKey
+      ? sessions.findIndex((entry) => entry.sessionKey === currentSessionKey)
+      : currentTo
+        ? sessions.findIndex((entry) => entry.to === currentTo || entry.peerId === currentTo)
+        : -1;
 
     const sessionChoice: string = await prompter.select({
       message: tw("session.message", { label: target.label }),
@@ -164,7 +163,7 @@ async function configureForwardTargets(params: {
     if (sessionChoice === CLEAR_VALUE) {
       draftValues[target.id] = "";
       draftAccountIds[target.id] = defaultForwardAccountId(target) || "";
-      delete draftPeerKinds[target.id];
+      delete draftSessionKeys[target.id];
       validTargetIds.delete(target.id);
       continue;
     }
@@ -173,7 +172,7 @@ async function configureForwardTargets(params: {
     if (!picked) continue;
     draftValues[target.id] = picked.to;
     draftAccountIds[target.id] = picked.accountId;
-    draftPeerKinds[target.id] = picked.peerKind;
+    draftSessionKeys[target.id] = picked.sessionKey;
     validTargetIds.add(target.id);
   }
 }

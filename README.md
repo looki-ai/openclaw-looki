@@ -43,9 +43,9 @@ Add this to `~/.openclaw/openclaw.json`:
       "pollTimeoutMs": 30000,
       "maxEvents": 10,
       "forwardTo": [
-        { "channel": "telegram",        "accountId": "default",           "to": "123456789" },
-        { "channel": "discord",         "accountId": "default",           "to": "channel_id" },
-        { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx" }
+        { "channel": "telegram",        "accountId": "default",           "to": "123456789",  "sessionKey": "agent:main:telegram:direct:123456789" },
+        { "channel": "discord",         "accountId": "default",           "to": "channel_id", "sessionKey": "agent:main:discord:group:channel_id" },
+        { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx",     "sessionKey": "agent:main:feishu:direct:ou_xxx" }
       ]
     }
   }
@@ -62,7 +62,7 @@ Fields:
 | `accountId`     | no       | `"default"`             | Identifier for the OpenClaw session/conversation                       |
 | `pollTimeoutMs` | no       | `30000`                 | Long-poll timeout (ms). Server caps at 30s                             |
 | `maxEvents`     | no       | `10`                    | Max events pulled per poll, 1–100                                      |
-| `forwardTo`     | no       | —                       | Array of `{channel, accountId?, to}` for fan-out of the agent's reply  |
+| `forwardTo`     | no       | —                       | Array of `{channel, accountId?, to, sessionKey}` for fan-out of the agent's reply  |
 
 > Structural config errors (unknown fields, wrong types, out-of-range values)
 > cause the channel to **throw on startup** instead of silently falling back,
@@ -70,9 +70,10 @@ Fields:
 
 ## Forwarding (`forwardTo`)
 
-`forwardTo` goes through OpenClaw's runtime outbound adapter, so each target
+`forwardTo` goes through OpenClaw's runtime outbound delivery, so each target
 channel's plugin has to be **installed, configured, and the gateway
-restarted** first.
+restarted** first. When `sessionKey` is present, direct/group routing is
+derived from the selected OpenClaw session.
 
 | channel           | Plugin                            | `to` format                                                    |
 | ----------------- | --------------------------------- | -------------------------------------------------------------- |

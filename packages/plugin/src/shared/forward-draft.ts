@@ -1,24 +1,21 @@
 import { CHANNEL_ID } from "./constants.js";
 import type { OpenClawConfigShape } from "./config.js";
 import { type SupportedForwardPlugin, defaultForwardAccountId } from "./forward-plugins.js";
-import { type ForwardPeerKind } from "./discovery.js";
 
 export type ForwardDraftMap = Record<string, string>;
-
-export type ForwardDraftPeerKindMap = Record<string, ForwardPeerKind | undefined>;
 
 export type ForwardDraftTarget = {
   channel: string;
   accountId?: string;
   to: string;
-  peerKind?: ForwardPeerKind;
+  sessionKey: string;
 };
 
 type ExistingForwardEntry = {
   channel?: string;
   accountId?: string;
   to?: string;
-  peerKind?: unknown;
+  sessionKey?: unknown;
 };
 
 function readExistingForwardTargets(cfg: OpenClawConfigShape): ExistingForwardEntry[] {
@@ -67,14 +64,13 @@ export function buildInitialDraftAccountIds(
   );
 }
 
-export function buildInitialDraftPeerKinds(
+export function buildInitialDraftSessionKeys(
   cfg: OpenClawConfigShape,
   availableTargets: readonly SupportedForwardPlugin[],
-): ForwardDraftPeerKindMap {
+): ForwardDraftMap {
   return matchExistingByChannel(cfg, availableTargets, (matched) => {
-    const raw = matched?.peerKind;
-    if (raw === "direct" || raw === "group") return raw;
-    return undefined;
+    const raw = matched?.sessionKey;
+    return typeof raw === "string" ? raw : "";
   });
 }
 
@@ -82,16 +78,18 @@ export function buildInitialDraftPeerKinds(
 export function isForwardTargetDraftValid(
   target: SupportedForwardPlugin,
   draftValues: ForwardDraftMap,
+  draftSessionKeys: ForwardDraftMap,
 ): boolean {
-  return Boolean(draftValues[target.id]);
+  return Boolean(draftValues[target.id] && draftSessionKeys[target.id]);
 }
 
 export function computeInitialValidTargetIds(
   availableTargets: readonly SupportedForwardPlugin[],
   draftValues: ForwardDraftMap,
+  draftSessionKeys: ForwardDraftMap,
 ): string[] {
   return availableTargets
-    .filter((target) => isForwardTargetDraftValid(target, draftValues))
+    .filter((target) => isForwardTargetDraftValid(target, draftValues, draftSessionKeys))
     .map((target) => target.id);
 }
 
@@ -100,19 +98,19 @@ export function buildForwardTargetsFromDraft(
   validTargetIds: readonly string[],
   draftValues: ForwardDraftMap,
   draftAccountIds: ForwardDraftMap,
-  draftPeerKinds: ForwardDraftPeerKindMap = {},
+  draftSessionKeys: ForwardDraftMap = {},
 ): ForwardDraftTarget[] {
   const validSet = new Set(validTargetIds);
   return availableTargets
-    .filter((target) => validSet.has(target.id))
+    .filter((target) => validSet.has(target.id) && draftSessionKeys[target.id])
     .map((target) => {
       const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
-      const peerKind = draftPeerKinds[target.id];
+      const sessionKey = draftSessionKeys[target.id];
       return {
         channel: target.channel,
         ...(accountId ? { accountId } : {}),
         to: draftValues[target.id],
-        ...(peerKind ? { peerKind } : {}),
+        sessionKey,
       };
     });
 }
