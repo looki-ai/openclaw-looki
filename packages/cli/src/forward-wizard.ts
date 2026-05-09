@@ -1,4 +1,4 @@
-import { isCancel, note, select, text } from "@clack/prompts";
+import { note, select } from "@clack/prompts";
 
 import {
   buildForwardTargetsFromDraft,
@@ -8,21 +8,11 @@ import {
   computeInitialValidTargetIds,
   defaultForwardAccountId,
   detectForwardTargets,
-  formatDraftHint,
-  getDiscordKnownTargets,
-  getQQBotKnownTargets,
-  getTelegramKnownTargets,
-  getWeixinAccountIds,
-  getWeixinContextUserIds,
-  getWhatsappKnownTargets,
-  isForwardTargetDraftValid,
-  isValidFeishuTo,
-  lookupKnownPeerKind,
-  readFeishuAllowFrom,
+  listForwardSessionsForChannel,
   type ForwardDraftMap,
   type ForwardDraftPeerKindMap,
   type ForwardDraftTarget,
-  type ForwardPeerKind,
+  type ForwardSessionCandidate,
   type SupportedForwardPlugin,
 } from "@looki-ai/openclaw-looki/shared";
 
@@ -31,40 +21,27 @@ import type { Translator } from "./i18n.js";
 import { makeGuardCancel } from "./ui.js";
 
 type DraftMap = ForwardDraftMap;
-
 type PeerKindMap = ForwardDraftPeerKindMap;
-
 type ForwardTarget = ForwardDraftTarget;
 
-/**
- * Channels where `peerKind` is ambiguous and must be resolved (direct vs group).
- * openclaw-weixin is always direct; feishu is represented here because its `to`
- * can be either `ou_xxx` (user) or `oc_xxx` (group chat).
- */
-const PEER_KIND_APPLICABLE = new Set<string>([
-  "discord",
-  "telegram",
-  "whatsapp",
-  "qqbot",
-  "feishu",
-]);
+type SessionCache = Map<string, ForwardSessionCandidate[]>;
 
-async function promptTextOrBack(
-  message: string,
-  opts: {
-    placeholder?: string;
-    defaultValue?: string;
-    validate?: (input: string) => string | undefined;
-  } = {},
-): Promise<string | null> {
-  const result = await text({
-    message,
-    placeholder: opts.placeholder,
-    initialValue: opts.defaultValue,
-    validate: opts.validate ? (value) => opts.validate!(String(value ?? "")) : undefined,
-  });
-  if (isCancel(result)) return null;
-  return String(result ?? "").trim();
+function getSessions(cache: SessionCache, channel: string): ForwardSessionCandidate[] {
+  let cached = cache.get(channel);
+  if (!cached) {
+    cached = listForwardSessionsForChannel(channel);
+    cache.set(channel, cached);
+  }
+  return cached;
+}
+
+function formatSessionHint(entry: ForwardSessionCandidate): string {
+  const parts: string[] = [];
+  if (entry.peerKind === "group") parts.push("group");
+  else parts.push("direct");
+  if (entry.accountId && entry.accountId !== "default") parts.push(`@ ${entry.accountId}`);
+  if (entry.peerId && entry.peerId !== entry.to) parts.push(entry.peerId);
+  return parts.join(" · ");
 }
 
 export async function runForwardWizard(
@@ -72,78 +49,86 @@ export async function runForwardWizard(
   config: OpenclawConfig,
 ): Promise<ForwardTarget[]> {
   const guardCancel = makeGuardCancel(t);
-  const availableTargets = detectForwardTargets(config);
-  if (availableTargets.length === 0) {
+  const sessionCache: SessionCache = new Map();
+
+  const detected = detectForwardTargets(config);
+  if (detected.length === 0) {
     await note(t("plugin.none"), t("plugin.title"));
     return [];
   }
 
-  await note(
-    t("plugin.detected", { labels: availableTargets.map((target) => target.label).join(", ") }),
-    t("plugin.title"),
+  // Only expose plugins that actually have at least one session to choose from.
+  const availableTargets = detected.filter(
+    (target) => getSessions(sessionCache, target.channel).length > 0,
+  );
+  const disabledTargets = detected.filter(
+    (target) => getSessions(sessionCache, target.channel).length === 0,
   );
 
-  const existingAllowFrom = readFeishuAllowFrom(config);
-  const draftValues = buildInitialDraftValues(config, availableTargets);
-  const draftAccountIds = buildInitialDraftAccountIds(config, availableTargets);
+  if (availableTargets.length === 0) {
+    await note(
+      t("plugin.detectedNoSessions", {
+        labels: detected.map((target) => target.label).join(", "),
+      }),
+      t("plugin.title"),
+    );
+    return [];
+  }
+
+  const detectedLine = t("plugin.detected", {
+    labels: availableTargets.map((target) => target.label).join(", "),
+  });
+  const disabledLine =
+    disabledTargets.length > 0
+      ? t("plugin.noSessionsSuffix", {
+          labels: disabledTargets.map((target) => target.label).join(", "),
+        })
+      : "";
+  await note([detectedLine, disabledLine].filter(Boolean).join("\n"), t("plugin.title"));
+
+  const draftValues: DraftMap = buildInitialDraftValues(config, availableTargets);
+  const draftAccountIds: DraftMap = buildInitialDraftAccountIds(config, availableTargets);
   const draftPeerKinds: PeerKindMap = buildInitialDraftPeerKinds(config, availableTargets);
-  const validTargetIds = new Set(
-    computeInitialValidTargetIds(availableTargets, draftValues, draftAccountIds, existingAllowFrom),
-  );
+  const validTargetIds = new Set(computeInitialValidTargetIds(availableTargets, draftValues));
 
   const doneValue = "__done__";
 
-  const refreshValidity = (target: SupportedForwardPlugin): void => {
-    if (isForwardTargetDraftValid(target, draftValues, draftAccountIds, existingAllowFrom)) {
-      validTargetIds.add(target.id);
-    } else {
-      validTargetIds.delete(target.id);
-    }
+  const currentHint = (target: SupportedForwardPlugin): string => {
+    const to = draftValues[target.id];
+    if (!to) return t("forward.emptyHint");
+    const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
+    const peerKind = draftPeerKinds[target.id];
+    const bits = [to];
+    if (peerKind) bits.push(peerKind);
+    if (accountId && accountId !== "default") bits.push(`@ ${accountId}`);
+    return t("forward.configuredHint", { value: bits.join(" · ") });
   };
 
-  const applyPeerKind = async (target: SupportedForwardPlugin): Promise<void> => {
-    if (!PEER_KIND_APPLICABLE.has(target.channel)) {
-      delete draftPeerKinds[target.id];
-      return;
-    }
-    const to = draftValues[target.id] ?? "";
-    const known = lookupKnownPeerKind({
-      channel: target.channel,
-      to,
-      accountId: draftAccountIds[target.id],
+  const buildPluginListOptions = () => {
+    const options = availableTargets.map((target) => {
+      const configured = validTargetIds.has(target.id);
+      return {
+        value: target.id,
+        label: `${configured ? "◼" : "◻"} ${target.label}`,
+        hint: currentHint(target),
+      };
     });
-    if (known) {
-      draftPeerKinds[target.id] = known;
-      return;
-    }
-    const initial: ForwardPeerKind = draftPeerKinds[target.id] ?? "direct";
-    draftPeerKinds[target.id] = guardCancel(
-      await select<ForwardPeerKind>({
-        message: t("peerKind.message", { label: target.label }),
-        options: [
-          { value: "direct", label: t("peerKind.direct"), hint: t("peerKind.directHint") },
-          { value: "group", label: t("peerKind.group"), hint: t("peerKind.groupHint") },
-        ],
-        initialValue: initial,
-      }),
-    );
+    options.push({
+      value: doneValue,
+      label: t("forward.doneLabel"),
+      hint: t("forward.doneHint", { count: validTargetIds.size }),
+    });
+    return options;
   };
 
   while (true) {
     await note(t("listControls.body"), t("listControls.title"));
-    const idsList = [...validTargetIds];
+    const firstChoice = validTargetIds.values().next().value;
     const choice = guardCancel(
       await select({
         message: t("forward.targetMessage"),
-        options: buildSelectionOptions(
-          t,
-          availableTargets,
-          idsList,
-          draftValues,
-          draftAccountIds,
-          doneValue,
-        ),
-        initialValue: idsList[0] || availableTargets[0]?.id || doneValue,
+        options: buildPluginListOptions(),
+        initialValue: firstChoice || availableTargets[0]?.id || doneValue,
       }),
     );
 
@@ -159,11 +144,45 @@ export async function runForwardWizard(
 
     const target = availableTargets.find((item) => item.id === choice);
     if (!target) continue;
-    const configured = validTargetIds.has(target.id);
 
-    const action = await promptTargetAction(t, target, configured);
-    if (action === "back") continue;
-    if (action === "clear") {
+    const sessions = getSessions(sessionCache, target.channel);
+    const CLEAR_VALUE = "__clear__";
+    const BACK_VALUE = "__back__";
+
+    type Option = { value: string; label: string; hint?: string };
+    const sessionOptions: Option[] = sessions.map((entry, index) => ({
+      value: String(index),
+      label: entry.label || entry.peerId || entry.to,
+      hint: formatSessionHint(entry),
+    }));
+    if (validTargetIds.has(target.id)) {
+      sessionOptions.push({
+        value: CLEAR_VALUE,
+        label: t("action.clear"),
+        hint: t("action.clearHint"),
+      });
+    }
+    sessionOptions.push({
+      value: BACK_VALUE,
+      label: t("action.back"),
+      hint: t("action.backHint"),
+    });
+
+    const currentTo = draftValues[target.id];
+    const matchedIndex = currentTo
+      ? sessions.findIndex((entry) => entry.to === currentTo || entry.peerId === currentTo)
+      : -1;
+
+    const sessionChoice = guardCancel(
+      await select<string>({
+        message: t("session.message", { label: target.label }),
+        options: sessionOptions,
+        initialValue: matchedIndex >= 0 ? String(matchedIndex) : sessionOptions[0]?.value,
+      }),
+    );
+
+    if (sessionChoice === BACK_VALUE) continue;
+    if (sessionChoice === CLEAR_VALUE) {
       draftValues[target.id] = "";
       draftAccountIds[target.id] = defaultForwardAccountId(target) || "";
       delete draftPeerKinds[target.id];
@@ -171,381 +190,11 @@ export async function runForwardWizard(
       continue;
     }
 
-    if (target.channel === "feishu") {
-      const value = await configureFeishuTarget(t, target, existingAllowFrom, draftValues);
-      if (value === null) continue;
-      draftValues[target.id] = value;
-    } else if (target.channel === "openclaw-weixin") {
-      const value = await configureWeixinTarget(t, target, draftValues, draftAccountIds);
-      if (value === null) continue;
-      draftValues[target.id] = value.to;
-      draftAccountIds[target.id] = value.accountId;
-    } else if (target.channel === "qqbot") {
-      const value = await configureQQBotTarget(t, target, draftValues, draftAccountIds);
-      if (value === null) continue;
-      draftValues[target.id] = value.to;
-      draftAccountIds[target.id] = value.accountId;
-    } else if (target.channel === "discord") {
-      const value = await configureDiscordTarget(t, target, draftValues, draftAccountIds);
-      if (value === null) continue;
-      draftValues[target.id] = value.to;
-      draftAccountIds[target.id] = value.accountId;
-    } else if (target.channel === "telegram") {
-      const value = await configureTelegramTarget(t, target, draftValues, draftAccountIds);
-      if (value === null) continue;
-      draftValues[target.id] = value.to;
-      draftAccountIds[target.id] = value.accountId;
-    } else if (target.channel === "whatsapp") {
-      const value = await configureWhatsappTarget(t, target, draftValues, draftAccountIds);
-      if (value === null) continue;
-      draftValues[target.id] = value.to;
-      draftAccountIds[target.id] = value.accountId;
-    } else {
-      const value = await configureGenericTarget(t, target, draftValues, draftAccountIds);
-      if (value === null) continue;
-      draftValues[target.id] = value.to;
-      draftAccountIds[target.id] = value.accountId;
-    }
-
-    await applyPeerKind(target);
-    refreshValidity(target);
+    const picked = sessions[Number(sessionChoice)];
+    if (!picked) continue;
+    draftValues[target.id] = picked.to;
+    draftAccountIds[target.id] = picked.accountId;
+    draftPeerKinds[target.id] = picked.peerKind;
+    validTargetIds.add(target.id);
   }
-}
-
-function buildSelectionOptions(
-  t: Translator,
-  targets: readonly SupportedForwardPlugin[],
-  validTargetIds: string[],
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-  doneValue: string,
-): Array<{ value: string; label: string; hint?: string }> {
-  const options = targets.map((target) => {
-    const currentValue = formatDraftHint(target, draftValues, draftAccountIds);
-    const configured = validTargetIds.includes(target.id);
-    return {
-      value: target.id,
-      label: `${configured ? "◼" : "◻"} ${target.label}`,
-      hint: configured
-        ? t("forward.configuredHint", { value: currentValue })
-        : currentValue
-          ? t("forward.invalidHint", { value: currentValue })
-          : t("forward.emptyHint"),
-    };
-  });
-  options.push({
-    value: doneValue,
-    label: t("forward.doneLabel"),
-    hint: t("forward.doneHint", { count: validTargetIds.length }),
-  });
-  return options;
-}
-
-async function promptTargetAction(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  configured: boolean,
-): Promise<"edit" | "clear" | "back"> {
-  const guardCancel = makeGuardCancel(t);
-  await note(
-    configured ? t("pageControls.configured") : t("pageControls.unconfigured"),
-    t("pageControls.title"),
-  );
-
-  if (!configured) return "edit";
-
-  return guardCancel(
-    await select<"edit" | "clear" | "back">({
-      message: t("action.message", { label: target.label }),
-      options: [
-        { value: "edit", label: t("action.edit"), hint: t("action.editHint") },
-        { value: "clear", label: t("action.clear"), hint: t("action.clearHint") },
-        { value: "back", label: t("action.back"), hint: t("action.backHint") },
-      ],
-      initialValue: "edit",
-    }),
-  );
-}
-
-async function configureFeishuTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  existingAllowFrom: string[],
-  draftValues: DraftMap,
-): Promise<string | null> {
-  if (existingAllowFrom.length > 0) {
-    await note(
-      t("feishu.allowFromDetected", { values: existingAllowFrom.join(", ") }),
-      t("feishu.allowFromTitle"),
-    );
-  }
-
-  return promptTextOrBack(t("feishu.toMessage"), {
-    placeholder: target.placeholder || "ou_xxx",
-    defaultValue: draftValues[target.id] || undefined,
-    validate: (input) =>
-      isValidFeishuTo(input, existingAllowFrom) ? undefined : t("feishu.invalidAllowFrom"),
-  });
-}
-
-async function configureWeixinTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-): Promise<{ accountId: string; to: string } | null> {
-  await note(t("weixin.targetHelp"), t("weixin.targetHelpTitle"));
-
-  const accountIds = getWeixinAccountIds();
-  if (accountIds.length > 0) {
-    await note(
-      t("weixin.accountsDetected", { values: accountIds.join(", ") }),
-      t("weixin.accountsTitle"),
-    );
-  }
-
-  const accountId = await promptTextOrBack(t("weixin.accountIdMessage"), {
-    placeholder: accountIds[0] || "weixin-account-id",
-    defaultValue: draftAccountIds[target.id] || accountIds[0] || undefined,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (accountId === null) return null;
-
-  const userIds = getWeixinContextUserIds(accountId);
-  if (userIds.length > 0) {
-    await note(t("weixin.usersDetected", { values: userIds.join(", ") }), t("weixin.usersTitle"));
-  }
-
-  const to = await promptTextOrBack(t("weixin.toMessage"), {
-    placeholder: userIds[0] || target.placeholder || "weixin_user_id",
-    defaultValue: draftValues[target.id] || userIds[0] || undefined,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function configureQQBotTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-): Promise<{ accountId: string; to: string } | null> {
-  await note(t("qqbot.targetHelp"), t("qqbot.targetHelpTitle"));
-
-  const knownTargets = getQQBotKnownTargets();
-  const accountIds = [...new Set(knownTargets.map((entry) => entry.accountId).filter(Boolean))];
-  const defaultAccountId =
-    draftAccountIds[target.id] || accountIds[0] || defaultForwardAccountId(target) || undefined;
-
-  if (knownTargets.length > 0) {
-    await note(
-      t("qqbot.targetsDetected", {
-        values: knownTargets
-          .map((entry) =>
-            [entry.accountId ? `accountId=${entry.accountId}` : "", `to=${entry.to}`]
-              .filter(Boolean)
-              .join(" "),
-          )
-          .join(", "),
-      }),
-      t("qqbot.targetsTitle"),
-    );
-  }
-
-  const accountId = await promptTextOrBack(t("qqbot.accountIdMessage"), {
-    placeholder: defaultAccountId || "default",
-    defaultValue: defaultAccountId,
-  });
-  if (accountId === null) return null;
-
-  const matchedTargets = knownTargets.filter(
-    (entry) => !accountId || entry.accountId === accountId,
-  );
-  const defaultTo =
-    draftValues[target.id] || matchedTargets[0]?.to || knownTargets[0]?.to || undefined;
-  const to = await promptTextOrBack(t("qqbot.toMessage"), {
-    placeholder: defaultTo || target.placeholder || "qqbot:c2c:<user_openid>",
-    defaultValue: defaultTo,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function configureDiscordTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-): Promise<{ accountId: string; to: string } | null> {
-  const knownTargets = getDiscordKnownTargets();
-  const accountIds = [...new Set(knownTargets.map((entry) => entry.accountId).filter(Boolean))];
-  const defaultAccountId =
-    draftAccountIds[target.id] || accountIds[0] || defaultForwardAccountId(target) || undefined;
-
-  if (knownTargets.length > 0) {
-    await note(
-      t("discord.targetsDetected", {
-        values: knownTargets
-          .map((entry) =>
-            [
-              entry.accountId ? `accountId=${entry.accountId}` : "",
-              `to=${entry.to}`,
-              entry.label ? `(${entry.label})` : "",
-            ]
-              .filter(Boolean)
-              .join(" "),
-          )
-          .join("\n"),
-      }),
-      t("discord.targetsTitle"),
-    );
-  }
-
-  const accountId = await promptTextOrBack(t("discord.accountIdMessage"), {
-    placeholder: defaultAccountId || "default",
-    defaultValue: defaultAccountId,
-  });
-  if (accountId === null) return null;
-
-  const matchedTargets = knownTargets.filter(
-    (entry) => !accountId || entry.accountId === accountId,
-  );
-  const defaultTo =
-    draftValues[target.id] || matchedTargets[0]?.to || knownTargets[0]?.to || undefined;
-  const to = await promptTextOrBack(t("discord.toMessage"), {
-    placeholder: defaultTo || target.placeholder || "channel_id or user_id",
-    defaultValue: defaultTo,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function configureTelegramTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-): Promise<{ accountId: string; to: string } | null> {
-  const knownTargets = getTelegramKnownTargets();
-  const accountIds = [...new Set(knownTargets.map((entry) => entry.accountId).filter(Boolean))];
-  const defaultAccountId =
-    draftAccountIds[target.id] || accountIds[0] || defaultForwardAccountId(target) || undefined;
-
-  if (knownTargets.length > 0) {
-    await note(
-      t("telegram.targetsDetected", {
-        values: knownTargets
-          .map((entry) =>
-            [
-              entry.accountId ? `accountId=${entry.accountId}` : "",
-              `to=${entry.to}`,
-              entry.label ? `(${entry.label})` : "",
-            ]
-              .filter(Boolean)
-              .join(" "),
-          )
-          .join("\n"),
-      }),
-      t("telegram.targetsTitle"),
-    );
-  }
-
-  const accountId = await promptTextOrBack(t("telegram.accountIdMessage"), {
-    placeholder: defaultAccountId || "default",
-    defaultValue: defaultAccountId,
-  });
-  if (accountId === null) return null;
-
-  const matchedTargets = knownTargets.filter(
-    (entry) => !accountId || entry.accountId === accountId,
-  );
-  const defaultTo =
-    draftValues[target.id] || matchedTargets[0]?.to || knownTargets[0]?.to || undefined;
-  const to = await promptTextOrBack(t("telegram.toMessage"), {
-    placeholder: defaultTo || target.placeholder || "telegram:<chat_id>",
-    defaultValue: defaultTo,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function configureWhatsappTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-): Promise<{ accountId: string; to: string } | null> {
-  const knownTargets = getWhatsappKnownTargets();
-  const accountIds = [...new Set(knownTargets.map((entry) => entry.accountId).filter(Boolean))];
-  const defaultAccountId =
-    draftAccountIds[target.id] || accountIds[0] || defaultForwardAccountId(target) || undefined;
-
-  if (knownTargets.length > 0) {
-    await note(
-      t("whatsapp.targetsDetected", {
-        values: knownTargets
-          .map((entry) =>
-            [
-              entry.accountId ? `accountId=${entry.accountId}` : "",
-              `to=${entry.to}`,
-              entry.label ? `(${entry.label})` : "",
-            ]
-              .filter(Boolean)
-              .join(" "),
-          )
-          .join("\n"),
-      }),
-      t("whatsapp.targetsTitle"),
-    );
-  }
-
-  const accountId = await promptTextOrBack(t("whatsapp.accountIdMessage"), {
-    placeholder: defaultAccountId || "default",
-    defaultValue: defaultAccountId,
-  });
-  if (accountId === null) return null;
-
-  const matchedTargets = knownTargets.filter(
-    (entry) => !accountId || entry.accountId === accountId,
-  );
-  const defaultTo =
-    draftValues[target.id] || matchedTargets[0]?.to || knownTargets[0]?.to || undefined;
-  const to = await promptTextOrBack(t("whatsapp.toMessage"), {
-    placeholder: defaultTo || target.placeholder || "+<country_code><phone>",
-    defaultValue: defaultTo,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function configureGenericTarget(
-  t: Translator,
-  target: SupportedForwardPlugin,
-  draftValues: DraftMap,
-  draftAccountIds: DraftMap,
-): Promise<{ accountId: string; to: string } | null> {
-  const accountId = await promptTextOrBack(t("generic.accountIdMessage", { label: target.label }), {
-    placeholder: defaultForwardAccountId(target) || "default",
-    defaultValue: draftAccountIds[target.id] || defaultForwardAccountId(target) || undefined,
-  });
-  if (accountId === null) return null;
-
-  const to = await promptTextOrBack(t("generic.toMessage", { label: target.label }), {
-    placeholder: target.placeholder || `${target.channel}-target-id`,
-    defaultValue: draftValues[target.id] || undefined,
-    validate: (input) => (input.trim() ? undefined : t("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
 }

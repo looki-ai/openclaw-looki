@@ -1,11 +1,7 @@
 import { CHANNEL_ID } from "./constants.js";
 import type { OpenClawConfigShape } from "./config.js";
 import { type SupportedForwardPlugin, defaultForwardAccountId } from "./forward-plugins.js";
-import {
-  getExistingFeishuAllowFrom,
-  isValidFeishuTo,
-  type ForwardPeerKind,
-} from "./discovery.js";
+import { type ForwardPeerKind } from "./discovery.js";
 
 export type ForwardDraftMap = Record<string, string>;
 
@@ -82,34 +78,21 @@ export function buildInitialDraftPeerKinds(
   });
 }
 
+/** A target is valid once it has a non-empty `to` stored in the draft. */
 export function isForwardTargetDraftValid(
   target: SupportedForwardPlugin,
   draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-  existingAllowFrom: string[],
 ): boolean {
-  const to = draftValues[target.id];
-  if (!to) return false;
-  if (target.channel === "feishu") return isValidFeishuTo(to, existingAllowFrom);
-  if (target.channel === "openclaw-weixin")
-    return Boolean(draftAccountIds[target.id] || defaultForwardAccountId(target));
-  return true;
+  return Boolean(draftValues[target.id]);
 }
 
-export function formatDraftHint(
-  target: SupportedForwardPlugin,
+export function computeInitialValidTargetIds(
+  availableTargets: readonly SupportedForwardPlugin[],
   draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-): string {
-  const to = draftValues[target.id];
-  const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
-  if (!to && !accountId) return "";
-  if (target.channel === "openclaw-weixin" || target.channel === "qqbot") {
-    return [accountId ? `accountId=${accountId}` : "", to ? `to=${to}` : ""]
-      .filter(Boolean)
-      .join(" ");
-  }
-  return to;
+): string[] {
+  return availableTargets
+    .filter((target) => isForwardTargetDraftValid(target, draftValues))
+    .map((target) => target.id);
 }
 
 export function buildForwardTargetsFromDraft(
@@ -132,21 +115,4 @@ export function buildForwardTargetsFromDraft(
         ...(peerKind ? { peerKind } : {}),
       };
     });
-}
-
-export function computeInitialValidTargetIds(
-  availableTargets: readonly SupportedForwardPlugin[],
-  draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-  existingAllowFrom: string[],
-): string[] {
-  return availableTargets
-    .filter((target) =>
-      isForwardTargetDraftValid(target, draftValues, draftAccountIds, existingAllowFrom),
-    )
-    .map((target) => target.id);
-}
-
-export function readFeishuAllowFrom(cfg: OpenClawConfigShape): string[] {
-  return getExistingFeishuAllowFrom(cfg);
 }

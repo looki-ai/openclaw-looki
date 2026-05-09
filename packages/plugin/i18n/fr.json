@@ -41,79 +41,22 @@
   "plugin": {
     "title": "Détection des plugins",
     "none": "Aucun plugin de transfert détecté. Seule la configuration Looki de base sera enregistrée.",
-    "detected": "Plugins installés détectés : {labels}"
+    "detected": "Plugins installés détectés : {labels}",
+    "detectedNoSessions": "Détecté {labels}, mais aucun ne possède encore de session de chat. Demandez à l'utilisateur cible d'envoyer un message au bot, puis relancez l'assistant.",
+    "noSessionsSuffix": "Masqué (pas encore de session) : {labels}"
   },
   "listControls": {
     "title": "Astuce",
     "body": "Entrée pour configurer · Échap pour quitter"
   },
-  "pageControls": {
-    "title": "Page",
-    "configured": "Entrée pour choisir : modifier, effacer ou retour",
-    "unconfigured": "Entrée pour configurer · Échap pour revenir"
-  },
   "action": {
-    "message": "Actions pour {label}",
-    "edit": "Modifier",
-    "editHint": "Saisir ou mettre à jour la cible",
     "clear": "Effacer",
     "clearHint": "Supprimer cette cible de transfert",
     "back": "Retour",
     "backHint": "Revenir à la liste des plugins"
   },
-  "feishu": {
-    "allowFromTitle": "Candidats Lark",
-    "allowFromDetected": "Valeurs allowFrom Lark détectées : {values}",
-    "allowFromEmpty": "Aucun allowFrom Lark détecté — l'ID de la cible ne peut pas être validé ici ; envisagez de configurer d'abord le plugin Lark",
-    "invalidAllowFrom": "Veuillez saisir une valeur allowFrom valide",
-    "toMessage": "Saisissez la cible Lark (Échap pour revenir)"
-  },
-  "weixin": {
-    "accountsTitle": "Comptes WeChat",
-    "accountsDetected": "Comptes WeChat connectés détectés : {values}",
-    "usersTitle": "Candidats utilisateurs WeChat",
-    "usersDetected": "IDs utilisateurs WeChat disponibles pour l'envoi : {values}",
-    "targetHelpTitle": "Découverte de cibles WeChat",
-    "targetHelp": "Connectez-vous d'abord à WeChat et demandez à l'utilisateur cible d'envoyer un message au bot WeChat. Le programme d'installation tentera de lire accountId et les user_id candidats depuis les fichiers context-tokens.json locaux.",
-    "accountIdMessage": "Saisissez l'accountId WeChat (Échap pour revenir)",
-    "toMessage": "Saisissez la cible WeChat / user_id (Échap pour revenir)"
-  },
-  "qqbot": {
-    "targetHelpTitle": "Découverte de cibles QQ Bot",
-    "targetHelp": "Message direct : demandez à l'utilisateur cible d'envoyer un message au QQ Bot, puis utilisez qqbot:c2c:<user_openid>\nGroupe : @mentionnez votre Bot dans le groupe cible, puis utilisez qqbot:group:<group_openid>\nSalon : déclenchez le Bot dans le salon, puis utilisez qqbot:channel:<channel_id>",
-    "targetsTitle": "Candidats QQ Bot",
-    "targetsDetected": "Cibles QQ Bot locales détectées : {values}",
-    "accountIdMessage": "Saisissez l'accountId QQ Bot (optionnel, Échap pour revenir)",
-    "toMessage": "Saisissez la cible QQ Bot (Échap pour revenir)"
-  },
-  "discord": {
-    "targetsTitle": "Candidats Discord",
-    "targetsDetected": "Cibles Discord locales détectées : {values}",
-    "accountIdMessage": "Saisissez l'accountId Discord (optionnel, Échap pour revenir)",
-    "toMessage": "Saisissez la cible Discord / channel_id ou user_id (Échap pour revenir)"
-  },
-  "telegram": {
-    "targetsTitle": "Candidats Telegram",
-    "targetsDetected": "Cibles Telegram locales détectées : {values}",
-    "accountIdMessage": "Saisissez l'accountId Telegram (optionnel, Échap pour revenir)",
-    "toMessage": "Saisissez la cible Telegram (Échap pour revenir)"
-  },
-  "whatsapp": {
-    "targetsTitle": "Candidats WhatsApp",
-    "targetsDetected": "Cibles WhatsApp locales détectées : {values}",
-    "accountIdMessage": "Saisissez l'accountId WhatsApp (optionnel, Échap pour revenir)",
-    "toMessage": "Saisissez la cible WhatsApp / +<indicatif><téléphone> (Échap pour revenir)"
-  },
-  "generic": {
-    "accountIdMessage": "Saisissez l'accountId {label} (optionnel, Échap pour revenir)",
-    "toMessage": "Saisissez la cible {label} (Échap pour revenir)"
-  },
-  "peerKind": {
-    "message": "La cible {label} est-elle un chat direct ou un groupe ?",
-    "direct": "Chat direct",
-    "directHint": "Conversation privée avec un utilisateur",
-    "group": "Groupe / canal",
-    "groupHint": "Groupe multi-utilisateurs, canal ou fil"
+  "session": {
+    "message": "Choisissez une session {label} vers laquelle transférer"
   },
   "forward": {
     "targetMessage": "Choisissez les plugins de chat pour le transfert de la sortie de l'agent",
@@ -123,7 +66,6 @@
       "other": "{count} configuré(s)"
     },
     "configuredHint": "Configuré : {value}",
-    "invalidHint": "Incomplet : {value}",
     "emptyHint": "Non configuré"
   },
   "openclaw": {

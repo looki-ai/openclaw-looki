@@ -41,79 +41,22 @@
   "plugin": {
     "title": "Plugin Detection",
     "none": "No forwarding plugins were detected. Only the basic Looki config will be saved.",
-    "detected": "Detected installed plugins: {labels}"
+    "detected": "Detected installed plugins: {labels}",
+    "detectedNoSessions": "Detected {labels}, but none of them have any existing chat sessions yet. Have the target user message the bot once, then rerun the wizard.",
+    "noSessionsSuffix": "Hidden (no sessions yet): {labels}"
   },
   "listControls": {
     "title": "Hint",
     "body": "Enter to configure · Esc to exit"
   },
-  "pageControls": {
-    "title": "Page",
-    "configured": "Enter to choose: edit, clear, or back",
-    "unconfigured": "Enter to configure · Esc to go back"
-  },
   "action": {
-    "message": "{label} actions",
-    "edit": "Edit",
-    "editHint": "Enter or update the target",
     "clear": "Clear",
     "clearHint": "Remove this forwarding target",
     "back": "Back",
     "backHint": "Return to the plugin list"
   },
-  "feishu": {
-    "allowFromTitle": "Lark Candidates",
-    "allowFromDetected": "Detected Lark allowFrom values: {values}",
-    "allowFromEmpty": "No Lark allowFrom detected — target ID cannot be validated here; consider configuring the Lark plugin first",
-    "invalidAllowFrom": "Please enter a valid allowFrom value",
-    "toMessage": "Enter Lark to (Esc to go back)"
-  },
-  "weixin": {
-    "accountsTitle": "WeChat Accounts",
-    "accountsDetected": "Detected logged-in WeChat accounts: {values}",
-    "usersTitle": "WeChat User Candidates",
-    "usersDetected": "Detected sendable WeChat user IDs: {values}",
-    "targetHelpTitle": "WeChat Target Discovery",
-    "targetHelp": "Log in to WeChat first and have the target user message the WeChat bot. The installer will try to read accountId and sendable user_id candidates from local context-tokens.json files.",
-    "accountIdMessage": "Enter WeChat accountId (Esc to go back)",
-    "toMessage": "Enter WeChat to / user_id (Esc to go back)"
-  },
-  "qqbot": {
-    "targetHelpTitle": "QQ Bot Target Discovery",
-    "targetHelp": "Direct message: have the target user send a message to QQ Bot, then use qqbot:c2c:<user_openid>\nGroup chat: @ your Bot in the target group, then use qqbot:group:<group_openid>\nChannel: trigger the Bot in the channel, then use qqbot:channel:<channel_id>",
-    "targetsTitle": "QQ Bot Candidates",
-    "targetsDetected": "Detected local QQ Bot targets: {values}",
-    "accountIdMessage": "Enter QQ Bot accountId (optional, Esc to go back)",
-    "toMessage": "Enter QQ Bot to (Esc to go back)"
-  },
-  "discord": {
-    "targetsTitle": "Discord Candidates",
-    "targetsDetected": "Detected local Discord targets: {values}",
-    "accountIdMessage": "Enter Discord accountId (optional, Esc to go back)",
-    "toMessage": "Enter Discord to / channel_id or user_id (Esc to go back)"
-  },
-  "telegram": {
-    "targetsTitle": "Telegram Candidates",
-    "targetsDetected": "Detected local Telegram targets: {values}",
-    "accountIdMessage": "Enter Telegram accountId (optional, Esc to go back)",
-    "toMessage": "Enter Telegram to (Esc to go back)"
-  },
-  "whatsapp": {
-    "targetsTitle": "WhatsApp Candidates",
-    "targetsDetected": "Detected local WhatsApp targets: {values}",
-    "accountIdMessage": "Enter WhatsApp accountId (optional, Esc to go back)",
-    "toMessage": "Enter WhatsApp to / +<country_code><phone> (Esc to go back)"
-  },
-  "generic": {
-    "accountIdMessage": "Enter {label} accountId (optional, Esc to go back)",
-    "toMessage": "Enter {label} to (Esc to go back)"
-  },
-  "peerKind": {
-    "message": "Is the {label} target a direct chat or a group?",
-    "direct": "Direct chat",
-    "directHint": "One-to-one DM with a user",
-    "group": "Group / channel",
-    "groupHint": "Multi-user group, channel, or thread"
+  "session": {
+    "message": "Pick a {label} session to forward to"
   },
   "forward": {
     "targetMessage": "Choose chat plugins for Agent output forwarding",
@@ -123,7 +66,6 @@
       "other": "{count} configured"
     },
     "configuredHint": "Configured: {value}",
-    "invalidHint": "Incomplete: {value}",
     "emptyHint": "Not configured"
   },
   "openclaw": {

@@ -41,79 +41,22 @@
   "plugin": {
     "title": "Detección de plugins",
     "none": "No se detectaron plugins de reenvío. Solo se guardará la configuración básica de Looki.",
-    "detected": "Plugins instalados detectados: {labels}"
+    "detected": "Plugins instalados detectados: {labels}",
+    "detectedNoSessions": "Se detectaron {labels}, pero aún no tienen ninguna sesión de chat. Pide al usuario objetivo que envíe un mensaje al bot y vuelve a ejecutar el asistente.",
+    "noSessionsSuffix": "Ocultos (aún sin sesiones): {labels}"
   },
   "listControls": {
     "title": "Sugerencia",
     "body": "Enter para configurar · Esc para salir"
   },
-  "pageControls": {
-    "title": "Página",
-    "configured": "Enter para elegir: editar, limpiar o atrás",
-    "unconfigured": "Enter para configurar · Esc para volver"
-  },
   "action": {
-    "message": "Acciones de {label}",
-    "edit": "Editar",
-    "editHint": "Introduce o actualiza el destino",
     "clear": "Limpiar",
     "clearHint": "Elimina este destino de reenvío",
     "back": "Atrás",
     "backHint": "Vuelve a la lista de plugins"
   },
-  "feishu": {
-    "allowFromTitle": "Candidatos de Lark",
-    "allowFromDetected": "Valores allowFrom de Lark detectados: {values}",
-    "allowFromEmpty": "No se detectó allowFrom de Lark — aquí no se puede validar el ID de destino; considera configurar primero el plugin de Lark",
-    "invalidAllowFrom": "Introduce un valor allowFrom válido",
-    "toMessage": "Introduce el destino de Lark (Esc para volver)"
-  },
-  "weixin": {
-    "accountsTitle": "Cuentas de WeChat",
-    "accountsDetected": "Cuentas de WeChat conectadas detectadas: {values}",
-    "usersTitle": "Candidatos de usuarios de WeChat",
-    "usersDetected": "IDs de usuarios de WeChat a los que se puede enviar: {values}",
-    "targetHelpTitle": "Descubrimiento de destinos de WeChat",
-    "targetHelp": "Primero inicia sesión en WeChat y pide al usuario de destino que envíe un mensaje al bot de WeChat. El instalador intentará leer accountId y los user_id candidatos desde los ficheros locales context-tokens.json.",
-    "accountIdMessage": "Introduce el accountId de WeChat (Esc para volver)",
-    "toMessage": "Introduce el destino de WeChat / user_id (Esc para volver)"
-  },
-  "qqbot": {
-    "targetHelpTitle": "Descubrimiento de destinos de QQ Bot",
-    "targetHelp": "Mensaje directo: pide al usuario de destino que envíe un mensaje al QQ Bot, luego usa qqbot:c2c:<user_openid>\nChat de grupo: menciona con @ a tu Bot en el grupo de destino, luego usa qqbot:group:<group_openid>\nCanal: activa el Bot en el canal, luego usa qqbot:channel:<channel_id>",
-    "targetsTitle": "Candidatos de QQ Bot",
-    "targetsDetected": "Destinos locales de QQ Bot detectados: {values}",
-    "accountIdMessage": "Introduce el accountId de QQ Bot (opcional, Esc para volver)",
-    "toMessage": "Introduce el destino de QQ Bot (Esc para volver)"
-  },
-  "discord": {
-    "targetsTitle": "Candidatos de Discord",
-    "targetsDetected": "Destinos locales de Discord detectados: {values}",
-    "accountIdMessage": "Introduce el accountId de Discord (opcional, Esc para volver)",
-    "toMessage": "Introduce el destino de Discord / channel_id o user_id (Esc para volver)"
-  },
-  "telegram": {
-    "targetsTitle": "Candidatos de Telegram",
-    "targetsDetected": "Destinos locales de Telegram detectados: {values}",
-    "accountIdMessage": "Introduce el accountId de Telegram (opcional, Esc para volver)",
-    "toMessage": "Introduce el destino de Telegram (Esc para volver)"
-  },
-  "whatsapp": {
-    "targetsTitle": "Candidatos de WhatsApp",
-    "targetsDetected": "Destinos locales de WhatsApp detectados: {values}",
-    "accountIdMessage": "Introduce el accountId de WhatsApp (opcional, Esc para volver)",
-    "toMessage": "Introduce el destino de WhatsApp / +<código de país><teléfono> (Esc para volver)"
-  },
-  "generic": {
-    "accountIdMessage": "Introduce el accountId de {label} (opcional, Esc para volver)",
-    "toMessage": "Introduce el destino de {label} (Esc para volver)"
-  },
-  "peerKind": {
-    "message": "¿El destino {label} es un chat directo o un grupo?",
-    "direct": "Chat directo",
-    "directHint": "Conversación privada con un usuario",
-    "group": "Grupo / canal",
-    "groupHint": "Grupo con varios usuarios, canal o hilo"
+  "session": {
+    "message": "Elige una sesión de {label} a la que reenviar"
   },
   "forward": {
     "targetMessage": "Elige los plugins de chat para reenviar la salida del agente",
@@ -123,7 +66,6 @@
       "other": "{count} configurados"
     },
     "configuredHint": "Configurado: {value}",
-    "invalidHint": "Incompleto: {value}",
     "emptyHint": "Sin configurar"
   },
   "openclaw": {
