@@ -8,9 +8,12 @@ An OpenClaw channel plugin for Looki, with a built-in `looki-memory` skill.
 - Optionally forwards the agent's output in parallel to WhatsApp / Telegram /
   Discord / Lark / WeChat / QQ Bot (each target is isolated — one failure
   does not block the others)
-- Ships a `looki_memory` tool and matching skill so the agent can read Looki
-  memory directly (profile, calendar, day timeline, moment detail & files,
-  semantic search, For You highlights)
+- Ships two tools + matching skills so the agent can read Looki directly:
+  - `looki_memory` / `looki-memory` — profile, calendar, day timeline,
+    moment detail & files, semantic search, For You highlights, latest
+    realtime event
+  - `looki_task` / `looki-task` — list Looki tasks and toggle per-task
+    openclaw message-channel forwarding
 
 ## Install
 
@@ -43,9 +46,11 @@ Add this to `~/.openclaw/openclaw.json`:
       "pollTimeoutMs": 30000,
       "maxEvents": 10,
       "forwardTo": [
-        { "channel": "telegram",        "accountId": "default",           "to": "123456789" },
-        { "channel": "discord",         "accountId": "default",           "to": "channel_id" },
-        { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx" }
+        { "channel": "telegram", "accountId": "default", "to": "123456789",        "sessionKey": "agent:main:telegram:direct:123456789" },
+        { "channel": "discord",  "accountId": "default", "to": "987654321",        "sessionKey": "agent:main:discord:group:987654321" },
+        { "channel": "feishu",   "accountId": "default", "to": "user:ou_xxx",      "sessionKey": "agent:main:feishu:direct:ou_xxx" },
+        { "channel": "feishu",   "accountId": "default", "to": "chat:oc_xxx",      "sessionKey": "agent:main:feishu:group:oc_xxx" },
+        { "channel": "qqbot",    "accountId": "default", "to": "qqbot:c2c:abc123", "sessionKey": "agent:main:qqbot:direct:abc123" }
       ]
     }
   }
@@ -62,7 +67,7 @@ Fields:
 | `accountId`     | no       | `"default"`             | Identifier for the OpenClaw session/conversation                       |
 | `pollTimeoutMs` | no       | `30000`                 | Long-poll timeout (ms). Server caps at 30s                             |
 | `maxEvents`     | no       | `10`                    | Max events pulled per poll, 1–100                                      |
-| `forwardTo`     | no       | —                       | Array of `{channel, accountId?, to}` for fan-out of the agent's reply  |
+| `forwardTo`     | no       | —                       | Array of `{channel, accountId?, to, sessionKey}` for fan-out of the agent's reply  |
 
 > Structural config errors (unknown fields, wrong types, out-of-range values)
 > cause the channel to **throw on startup** instead of silently falling back,
@@ -70,17 +75,24 @@ Fields:
 
 ## Forwarding (`forwardTo`)
 
-`forwardTo` goes through OpenClaw's runtime outbound adapter, so each target
+`forwardTo` goes through OpenClaw's runtime outbound delivery, so each target
 channel's plugin has to be **installed, configured, and the gateway
-restarted** first.
+restarted** first. Setup writes `sessionKey`; every target must point at an
+existing OpenClaw session.
 
-| channel           | Plugin                            | `to` format                                                    |
+> **`to` is the downstream plugin's outbound address — always copy
+> `origin.to` verbatim from the matching session** (in OpenClaw's WebUI
+> Sessions tab, or `~/.openclaw/agents/main/sessions/sessions.json`). The
+> prefix is **not** optional, and passing a bare id will fail at the
+> downstream plugin. `to` and `sessionKey` must come from the same session.
+
+| channel           | Plugin                            | `to` format (matches `origin.to`)                              |
 | ----------------- | --------------------------------- | -------------------------------------------------------------- |
-| `whatsapp`        | `@openclaw/whatsapp`              | WhatsApp JID or phone number                                   |
-| `telegram`        | `@openclaw/telegram`              | Telegram chat id (topic per Telegram plugin format)            |
-| `discord`         | `@openclaw/discord`               | Discord channel id / DM / thread id                            |
-| `feishu`          | `@larksuite/openclaw-lark`        | Lark open_id / chat_id etc.                                    |
-| `openclaw-weixin` | `@tencent-weixin/openclaw-weixin` | WeChat user id — recipient should have messaged the bot first  |
+| `whatsapp`        | `@openclaw/whatsapp`              | WhatsApp JID (e.g. `15551234567@s.whatsapp.net`)               |
+| `telegram`        | `@openclaw/telegram`              | Telegram chat id (numeric, topic per Telegram plugin format)   |
+| `discord`         | `@openclaw/discord`               | Discord channel / DM / thread id (numeric)                     |
+| `feishu`          | `@larksuite/openclaw-lark`        | `user:<open_id>` for DMs · `chat:<chat_id>` / `channel:<chat_id>` for groups |
+| `openclaw-weixin` | `@tencent-weixin/openclaw-weixin` | WeChat user id — recipient must have messaged the bot first    |
 | `qqbot`           | `@openclaw/qqbot`                 | `qqbot:c2c:<openid>` / `qqbot:group:<groupid>`                 |
 
 Common installs:
@@ -108,10 +120,18 @@ Notes:
 - Only the agent's `final` reply is forwarded — streaming block fragments
   are dropped
 
-## Looki Memory skill / tool
+## Bundled tools & skills
 
-Installing the plugin automatically registers a tool called `looki_memory`
-and a skill `looki-memory` that uses it. The agent can call it directly:
+Installing the plugin automatically registers two tools and their matching
+skills. Both reuse `channels.openclaw-looki.baseUrl` / `apiKey`, so **no
+separate credentials are needed**. Every fetch has a 30s timeout, and
+responses are safe-stringified and truncated to 200 KB before being handed
+to the agent, to keep its context sane.
+
+### `looki_memory` / skill `looki-memory`
+
+Read Looki memory (profile, calendar, day timeline, moments, semantic
+search, For You highlights, realtime events):
 
 ```
 looki_memory(action="me")
@@ -121,12 +141,25 @@ looki_memory(action="moment", moment_id="mmt_xxx")
 looki_memory(action="moment_files", moment_id="mmt_xxx", highlight=true, limit=20)
 looki_memory(action="search", query="met Alice", page=1, page_size=20)
 looki_memory(action="for_you", group="vlog", liked=true, limit=20)
+looki_memory(action="realtime_latest")
 ```
 
-Every action reuses `channels.openclaw-looki.baseUrl` / `apiKey`, so **no
-separate credentials are needed**. Full parameter shape lives in
-[`src/tools/memory-tool.ts`](./src/tools/memory-tool.ts)
+Full parameter shape:
+[`src/tools/memory-tool.ts`](./packages/plugin/src/tools/memory-tool.ts)
 (`LOOKI_MEMORY_TOOL_PARAMETERS`).
 
-The fetch has a 30s timeout, and responses are safe-stringified and truncated
-to 200 KB before being handed to the agent, to keep its context sane.
+### `looki_task` / skill `looki-task`
+
+List the user's Looki tasks and toggle whether a given task's output is
+forwarded through the openclaw message channel:
+
+```
+looki_task(action="tasks")
+looki_task(action="tasks", status=2, limit=20)                    # in-progress only
+looki_task(action="task_notification", task_id="tsk_xxx", enabled=true)
+looki_task(action="task_notification", task_id="tsk_xxx", enabled=false)
+```
+
+`status` is `1=NOT_START`, `2=IN_PROGRESS`, `3=DONE`. Full parameter shape:
+[`src/tools/task-tool.ts`](./packages/plugin/src/tools/task-tool.ts)
+(`LOOKI_TASK_TOOL_PARAMETERS`).

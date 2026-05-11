@@ -1,5 +1,7 @@
 import { buildLookiUrl } from "./base-url.js";
 
+const ERROR_BODY_PREVIEW_LENGTH = 200;
+
 export type LookiEventEnvelope = {
   id: string; // logical event id (from server-side build_event)
   created_at_ms: number;
@@ -23,7 +25,7 @@ export type GetUpdatesResponse = {
 };
 
 export type GetUpdatesParams = {
-  baseUrl: string; // e.g. http://localhost:9001/openclaw-looki
+  baseUrl: string; // e.g. http://localhost:9001/message-channel
   /** Looki user API key (e.g. "lk-..."). Server resolves the user + their
    *  active subscription from this alone — no sub-id required. */
   apiKey: string;
@@ -31,6 +33,14 @@ export type GetUpdatesParams = {
   maxEvents: number;
   heartbeatAtMs: number;
 };
+
+function previewResponseBody(rawText: string): string {
+  const compact = rawText.replace(/\s+/g, " ").trim();
+  if (!compact) return "<empty body>";
+  return compact.length > ERROR_BODY_PREVIEW_LENGTH
+    ? `${compact.slice(0, ERROR_BODY_PREVIEW_LENGTH)}...`
+    : compact;
+}
 
 /**
  * Long-poll the Looki events API. The server may hold the request up to
@@ -68,7 +78,9 @@ export async function getUpdates(params: GetUpdatesParams): Promise<GetUpdatesRe
     });
     const rawText = await res.text();
     if (!res.ok) {
-      const err = new Error(`getUpdates ${res.status}: ${rawText}`) as Error & { status?: number };
+      const err = new Error(`getUpdates ${res.status}: ${previewResponseBody(rawText)}`) as Error & {
+        status?: number;
+      };
       err.status = res.status;
       throw err;
     }

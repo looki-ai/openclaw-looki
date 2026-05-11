@@ -94,11 +94,17 @@
                 "to": {
                   "type": "string",
                   "minLength": 1
+                },
+                "sessionKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "OpenClaw session key selected by setup. Acts as the single source of truth — direct/group routing and agentId are derived from it at runtime."
                 }
               },
               "required": [
                 "channel",
-                "to"
+                "to",
+                "sessionKey"
               ]
             }
           }
