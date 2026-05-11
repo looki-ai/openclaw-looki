@@ -18,13 +18,10 @@ import {
   listForwardSessionsForChannel,
   buildInitialDraftValues,
   buildInitialDraftAccountIds,
-  buildInitialDraftAgentIds,
-  buildInitialDraftPeerKinds,
   buildInitialDraftSessionKeys,
   buildForwardTargetsFromDraft,
   computeInitialValidTargetIds,
   type ForwardDraftMap,
-  type ForwardPeerKindDraftMap,
   type ForwardSessionCandidate,
 } from "../shared/index.js";
 
@@ -73,13 +70,8 @@ async function configureForwardTargets(params: {
   const draftValues: ForwardDraftMap = buildInitialDraftValues(cfgShape, availableTargets);
   const draftAccountIds: ForwardDraftMap = buildInitialDraftAccountIds(cfgShape, availableTargets);
   const draftSessionKeys: ForwardDraftMap = buildInitialDraftSessionKeys(cfgShape, availableTargets);
-  const draftPeerKinds: ForwardPeerKindDraftMap = buildInitialDraftPeerKinds(
-    cfgShape,
-    availableTargets,
-  );
-  const draftAgentIds: ForwardDraftMap = buildInitialDraftAgentIds(cfgShape, availableTargets);
   const validTargetIds = new Set(
-    computeInitialValidTargetIds(availableTargets, draftValues, draftSessionKeys, draftPeerKinds),
+    computeInitialValidTargetIds(availableTargets, draftValues, draftSessionKeys),
   );
   const doneValue = "__done__";
 
@@ -125,8 +117,6 @@ async function configureForwardTargets(params: {
         draftValues,
         draftAccountIds,
         draftSessionKeys,
-        draftPeerKinds,
-        draftAgentIds,
       );
     }
 
@@ -174,8 +164,6 @@ async function configureForwardTargets(params: {
       draftValues[target.id] = "";
       draftAccountIds[target.id] = defaultForwardAccountId(target) || "";
       delete draftSessionKeys[target.id];
-      delete draftPeerKinds[target.id];
-      delete draftAgentIds[target.id];
       validTargetIds.delete(target.id);
       continue;
     }
@@ -185,8 +173,6 @@ async function configureForwardTargets(params: {
     draftValues[target.id] = picked.to;
     draftAccountIds[target.id] = picked.accountId;
     draftSessionKeys[target.id] = picked.sessionKey;
-    draftPeerKinds[target.id] = picked.peerKind;
-    draftAgentIds[target.id] = picked.agentId ?? "";
     validTargetIds.add(target.id);
   }
 }

@@ -4,6 +4,7 @@ import path from "node:path";
 
 import type { OpenClawConfigShape } from "./config.js";
 import { type SupportedForwardPlugin, SUPPORTED_FORWARD_PLUGINS } from "./forward-plugins.js";
+import { parseSessionKey, type ForwardPeerKind } from "./session-key.js";
 
 export function getOpenclawStateDir(): string {
   return process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw");
@@ -59,7 +60,7 @@ export function getWeixinAccountIds(): string[] {
   return parsed.map((entry) => String(entry).trim()).filter(Boolean);
 }
 
-export type ForwardPeerKind = "direct" | "group";
+export type { ForwardPeerKind };
 
 function toNonEmptyString(value: unknown): string {
   return String(value ?? "").trim();
@@ -80,24 +81,6 @@ export type ForwardSessionCandidate = {
   /** OpenClaw agent id owning this session (from the session key). */
   agentId?: string;
 };
-
-/**
- * Parse openclaw session keys of shape `agent:<agentId>:<channel>:<kind>:<peerId...>`.
- * `<peerId>` may itself contain `:` segments (e.g. `looki:account:default`),
- * which is why we rejoin everything from index 4 onward.
- */
-function parseSessionKeyPeer(
-  sessionKey: string,
-): { peerKind: ForwardPeerKind; peerId: string; agentId?: string } | undefined {
-  const parts = sessionKey.split(":");
-  const agentId = parts[1] || undefined;
-  const rawKind = parts[3]?.toLowerCase();
-  const peerId = parts.slice(4).join(":");
-  if (!peerId) return undefined;
-  if (rawKind === "direct") return { peerKind: "direct", peerId, agentId };
-  if (rawKind === "group" || rawKind === "channel") return { peerKind: "group", peerId, agentId };
-  return undefined;
-}
 
 /**
  * Scan `sessions.json` for peers the bot has interacted with on the given
@@ -132,7 +115,7 @@ export function listForwardSessionsForChannel(channel: string): ForwardSessionCa
     if (toNonEmptyString(record.provider).toLowerCase() !== channel.toLowerCase()) continue;
     const to = toNonEmptyString(record.to);
     if (!to) continue;
-    const sessionPeer = parseSessionKeyPeer(sessionKey);
+    const sessionPeer = parseSessionKey(sessionKey);
     if (!sessionPeer) continue;
     const accountId = toNonEmptyString(record.accountId) || "default";
     const label = toNonEmptyString(record.label);

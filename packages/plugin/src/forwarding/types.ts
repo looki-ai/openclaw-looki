@@ -1,5 +1,3 @@
-export type LookiForwardPeerKind = "direct" | "group";
-
 export type LookiForwardTarget = {
   /** Target channel id, e.g. "feishu". */
   channel: string;
@@ -7,12 +5,12 @@ export type LookiForwardTarget = {
   accountId?: string;
   /** Recipient in the destination channel (e.g. open_id for Feishu/Lark, or group chat id). */
   to: string;
-  /** OpenClaw session key selected during setup. */
+  /**
+   * OpenClaw session key selected during setup. Acts as the single source of
+   * truth for agentId, peerKind (direct/group) — those are derived at runtime
+   * via parseSessionKey, not persisted separately.
+   */
   sessionKey: string;
-  /** Direct/group, picked in setup. Drives outbound conversationType + mirror.isGroup. */
-  peerKind: LookiForwardPeerKind;
-  /** OpenClaw agent id that owns the session, picked in setup. */
-  agentId?: string;
 };
 
 export function normalizeForwardTargets(value: unknown): LookiForwardTarget[] {
@@ -34,17 +32,9 @@ export function normalizeForwardTargets(value: unknown): LookiForwardTarget[] {
       typeof maybeTarget.sessionKey === "string" && maybeTarget.sessionKey.trim()
         ? maybeTarget.sessionKey.trim()
         : undefined;
-    const peerKind =
-      maybeTarget.peerKind === "direct" || maybeTarget.peerKind === "group"
-        ? maybeTarget.peerKind
-        : undefined;
-    const agentId =
-      typeof maybeTarget.agentId === "string" && maybeTarget.agentId.trim()
-        ? maybeTarget.agentId.trim()
-        : undefined;
 
-    if (!channel || !to || !sessionKey || !peerKind) continue;
-    targets.push({ channel, to, accountId, sessionKey, peerKind, agentId });
+    if (!channel || !to || !sessionKey) continue;
+    targets.push({ channel, to, accountId, sessionKey });
   }
 
   return targets;

@@ -5,6 +5,7 @@ import {
   type DeliverOutboundPayloadsParams,
 } from "openclaw/plugin-sdk/outbound-runtime";
 
+import { parseSessionKey } from "../shared/session-key.js";
 import type { LookiForwardTarget } from "./types.js";
 
 type OutboundChannel = DeliverOutboundPayloadsParams["channel"];
@@ -27,6 +28,11 @@ async function sendToTarget(
   cfg: OpenClawConfig,
   idempotencyKey: string | undefined,
 ): Promise<void> {
+  const parsed = parseSessionKey(target.sessionKey);
+  if (!parsed) {
+    throw new Error(`invalid sessionKey: ${target.sessionKey}`);
+  }
+
   await deliverOutboundPayloads({
     cfg,
     channel: target.channel as OutboundChannel,
@@ -35,15 +41,15 @@ async function sendToTarget(
     payloads: [{ text }],
     session: buildOutboundSessionContext({
       cfg,
-      agentId: target.agentId,
+      agentId: parsed.agentId,
       sessionKey: target.sessionKey,
-      conversationType: target.peerKind,
+      conversationType: parsed.peerKind,
     }),
     mirror: {
       sessionKey: target.sessionKey,
-      agentId: target.agentId,
+      agentId: parsed.agentId,
       text,
-      isGroup: target.peerKind === "group",
+      isGroup: parsed.peerKind === "group",
       idempotencyKey: idempotencyKey
         ? `openclaw-looki:forward:${target.channel}:${target.accountId ?? "default"}:${
             target.to

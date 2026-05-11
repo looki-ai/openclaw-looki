@@ -3,8 +3,6 @@ import { note, select } from "@clack/prompts";
 import {
   buildForwardTargetsFromDraft,
   buildInitialDraftAccountIds,
-  buildInitialDraftAgentIds,
-  buildInitialDraftPeerKinds,
   buildInitialDraftSessionKeys,
   buildInitialDraftValues,
   computeInitialValidTargetIds,
@@ -13,7 +11,6 @@ import {
   listForwardSessionsForChannel,
   type ForwardDraftMap,
   type ForwardDraftTarget,
-  type ForwardPeerKindDraftMap,
   type ForwardSessionCandidate,
   type SupportedForwardPlugin,
 } from "@looki-ai/openclaw-looki/shared";
@@ -90,13 +87,8 @@ export async function runForwardWizard(
   const draftValues: DraftMap = buildInitialDraftValues(config, availableTargets);
   const draftAccountIds: DraftMap = buildInitialDraftAccountIds(config, availableTargets);
   const draftSessionKeys: DraftMap = buildInitialDraftSessionKeys(config, availableTargets);
-  const draftPeerKinds: ForwardPeerKindDraftMap = buildInitialDraftPeerKinds(
-    config,
-    availableTargets,
-  );
-  const draftAgentIds: DraftMap = buildInitialDraftAgentIds(config, availableTargets);
   const validTargetIds = new Set(
-    computeInitialValidTargetIds(availableTargets, draftValues, draftSessionKeys, draftPeerKinds),
+    computeInitialValidTargetIds(availableTargets, draftValues, draftSessionKeys),
   );
 
   const doneValue = "__done__";
@@ -145,8 +137,6 @@ export async function runForwardWizard(
         draftValues,
         draftAccountIds,
         draftSessionKeys,
-        draftPeerKinds,
-        draftAgentIds,
       );
     }
 
@@ -197,8 +187,6 @@ export async function runForwardWizard(
       draftValues[target.id] = "";
       draftAccountIds[target.id] = defaultForwardAccountId(target) || "";
       delete draftSessionKeys[target.id];
-      delete draftPeerKinds[target.id];
-      delete draftAgentIds[target.id];
       validTargetIds.delete(target.id);
       continue;
     }
@@ -208,8 +196,6 @@ export async function runForwardWizard(
     draftValues[target.id] = picked.to;
     draftAccountIds[target.id] = picked.accountId;
     draftSessionKeys[target.id] = picked.sessionKey;
-    draftPeerKinds[target.id] = picked.peerKind;
-    draftAgentIds[target.id] = picked.agentId ?? "";
     validTargetIds.add(target.id);
   }
 }

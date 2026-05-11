@@ -1,18 +1,14 @@
 import { CHANNEL_ID } from "./constants.js";
 import type { OpenClawConfigShape } from "./config.js";
 import { type SupportedForwardPlugin, defaultForwardAccountId } from "./forward-plugins.js";
-import type { LookiForwardPeerKind } from "../forwarding/types.js";
 
 export type ForwardDraftMap = Record<string, string>;
-export type ForwardPeerKindDraftMap = Record<string, LookiForwardPeerKind | undefined>;
 
 export type ForwardDraftTarget = {
   channel: string;
   accountId?: string;
   to: string;
   sessionKey: string;
-  peerKind: LookiForwardPeerKind;
-  agentId?: string;
 };
 
 type ExistingForwardEntry = {
@@ -20,8 +16,6 @@ type ExistingForwardEntry = {
   accountId?: string;
   to?: string;
   sessionKey?: unknown;
-  peerKind?: unknown;
-  agentId?: unknown;
 };
 
 function readExistingForwardTargets(cfg: OpenClawConfigShape): ExistingForwardEntry[] {
@@ -80,48 +74,22 @@ export function buildInitialDraftSessionKeys(
   });
 }
 
-export function buildInitialDraftPeerKinds(
-  cfg: OpenClawConfigShape,
-  availableTargets: readonly SupportedForwardPlugin[],
-): ForwardPeerKindDraftMap {
-  return matchExistingByChannel(cfg, availableTargets, (matched) => {
-    const raw = matched?.peerKind;
-    return raw === "direct" || raw === "group" ? raw : undefined;
-  });
-}
-
-export function buildInitialDraftAgentIds(
-  cfg: OpenClawConfigShape,
-  availableTargets: readonly SupportedForwardPlugin[],
-): ForwardDraftMap {
-  return matchExistingByChannel(cfg, availableTargets, (matched) => {
-    const raw = matched?.agentId;
-    return typeof raw === "string" ? raw : "";
-  });
-}
-
-/** A target is valid once it has `to`, `sessionKey`, and `peerKind` in the draft. */
+/** A target is valid once it has `to` and `sessionKey` in the draft. */
 export function isForwardTargetDraftValid(
   target: SupportedForwardPlugin,
   draftValues: ForwardDraftMap,
   draftSessionKeys: ForwardDraftMap,
-  draftPeerKinds: ForwardPeerKindDraftMap,
 ): boolean {
-  return Boolean(
-    draftValues[target.id] && draftSessionKeys[target.id] && draftPeerKinds[target.id],
-  );
+  return Boolean(draftValues[target.id] && draftSessionKeys[target.id]);
 }
 
 export function computeInitialValidTargetIds(
   availableTargets: readonly SupportedForwardPlugin[],
   draftValues: ForwardDraftMap,
   draftSessionKeys: ForwardDraftMap,
-  draftPeerKinds: ForwardPeerKindDraftMap,
 ): string[] {
   return availableTargets
-    .filter((target) =>
-      isForwardTargetDraftValid(target, draftValues, draftSessionKeys, draftPeerKinds),
-    )
+    .filter((target) => isForwardTargetDraftValid(target, draftValues, draftSessionKeys))
     .map((target) => target.id);
 }
 
@@ -131,25 +99,19 @@ export function buildForwardTargetsFromDraft(
   draftValues: ForwardDraftMap,
   draftAccountIds: ForwardDraftMap,
   draftSessionKeys: ForwardDraftMap,
-  draftPeerKinds: ForwardPeerKindDraftMap,
-  draftAgentIds: ForwardDraftMap = {},
 ): ForwardDraftTarget[] {
   const validSet = new Set(validTargetIds);
   const targets: ForwardDraftTarget[] = [];
   for (const target of availableTargets) {
     if (!validSet.has(target.id)) continue;
     const sessionKey = draftSessionKeys[target.id];
-    const peerKind = draftPeerKinds[target.id];
-    if (!sessionKey || !peerKind) continue;
+    if (!sessionKey) continue;
     const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
-    const agentId = draftAgentIds[target.id];
     targets.push({
       channel: target.channel,
       ...(accountId ? { accountId } : {}),
       to: draftValues[target.id],
       sessionKey,
-      peerKind,
-      ...(agentId ? { agentId } : {}),
     });
   }
   return targets;

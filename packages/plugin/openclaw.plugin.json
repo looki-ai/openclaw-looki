@@ -98,24 +98,13 @@
                 "sessionKey": {
                   "type": "string",
                   "minLength": 1,
-                  "description": "OpenClaw session key selected by setup."
-                },
-                "peerKind": {
-                  "type": "string",
-                  "enum": ["direct", "group"],
-                  "description": "Direct or group chat, picked during setup."
-                },
-                "agentId": {
-                  "type": "string",
-                  "minLength": 1,
-                  "description": "OpenClaw agent id owning the session, picked during setup."
+                  "description": "OpenClaw session key selected by setup. Acts as the single source of truth — direct/group routing and agentId are derived from it at runtime."
                 }
               },
               "required": [
                 "channel",
                 "to",
-                "sessionKey",
-                "peerKind"
+                "sessionKey"
               ]
             }
           }
