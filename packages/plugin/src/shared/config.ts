@@ -42,8 +42,3 @@ export function patchLookiChannelConfig<T extends OpenClawConfigShape>(
     },
   };
 }
-
-export function getLookiChannelConfig(cfg: OpenClawConfigShape): LookiChannelConfig {
-  const channels = cfg.channels ?? {};
-  return (channels[CHANNEL_ID] as LookiChannelConfig | undefined) ?? {};
-}

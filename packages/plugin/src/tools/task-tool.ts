@@ -9,7 +9,7 @@ import {
   requireStringParam,
   type JsonRecord,
   type ToolLogger,
-} from "../shared/http_util.js";
+} from "../shared/looki-api.js";
 
 type LookiTaskAction = "tasks" | "task_notification";
 
