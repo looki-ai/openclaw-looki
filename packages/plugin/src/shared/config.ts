@@ -7,7 +7,12 @@ export type LookiChannelConfig = {
   accountId?: string;
   pollTimeoutMs?: number;
   maxEvents?: number;
-  forwardTo?: Array<{ channel: string; accountId?: string; to: string }>;
+  forwardTo?: Array<{
+    channel: string;
+    accountId?: string;
+    to: string;
+    sessionKey: string;
+  }>;
 };
 
 export type OpenClawConfigShape = {
