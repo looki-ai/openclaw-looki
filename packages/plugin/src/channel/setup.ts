@@ -55,7 +55,7 @@ function patchLookiConfig(cfg: OpenClawConfig, patch: Record<string, unknown>): 
 function formatSessionHint(entry: ForwardSessionCandidate): string {
   const parts: string[] = [entry.peerKind === "group" ? "group" : "direct"];
   if (entry.accountId && entry.accountId !== "default") parts.push(`@ ${entry.accountId}`);
-  if (entry.peerId && entry.peerId !== entry.to) parts.push(entry.peerId);
+  if (entry.label && entry.label !== entry.to) parts.push(entry.label);
   return parts.join(" · ");
 }
 
@@ -129,7 +129,7 @@ async function configureForwardTargets(params: {
 
     const sessionOptions = sessions.map((entry, index) => ({
       value: String(index),
-      label: entry.label || entry.peerId || entry.to,
+      label: entry.to,
       hint: formatSessionHint(entry),
     }));
     if (validTargetIds.has(target.id)) {

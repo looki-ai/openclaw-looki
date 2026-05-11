@@ -38,7 +38,7 @@ function formatSessionHint(entry: ForwardSessionCandidate): string {
   if (entry.peerKind === "group") parts.push("group");
   else parts.push("direct");
   if (entry.accountId && entry.accountId !== "default") parts.push(`@ ${entry.accountId}`);
-  if (entry.peerId && entry.peerId !== entry.to) parts.push(entry.peerId);
+  if (entry.label && entry.label !== entry.to) parts.push(entry.label);
   return parts.join(" · ");
 }
 
@@ -150,7 +150,7 @@ export async function runForwardWizard(
     type Option = { value: string; label: string; hint?: string };
     const sessionOptions: Option[] = sessions.map((entry, index) => ({
       value: String(index),
-      label: entry.label || entry.peerId || entry.to,
+      label: entry.to,
       hint: formatSessionHint(entry),
     }));
     if (validTargetIds.has(target.id)) {

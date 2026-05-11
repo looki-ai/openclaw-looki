@@ -43,9 +43,11 @@ Add this to `~/.openclaw/openclaw.json`:
       "pollTimeoutMs": 30000,
       "maxEvents": 10,
       "forwardTo": [
-        { "channel": "telegram",        "accountId": "default",           "to": "123456789",  "sessionKey": "agent:main:telegram:direct:123456789" },
-        { "channel": "discord",         "accountId": "default",           "to": "channel_id", "sessionKey": "agent:main:discord:group:channel_id" },
-        { "channel": "feishu",          "accountId": "default",           "to": "ou_xxx",     "sessionKey": "agent:main:feishu:direct:ou_xxx" }
+        { "channel": "telegram", "accountId": "default", "to": "123456789",        "sessionKey": "agent:main:telegram:direct:123456789" },
+        { "channel": "discord",  "accountId": "default", "to": "987654321",        "sessionKey": "agent:main:discord:group:987654321" },
+        { "channel": "feishu",   "accountId": "default", "to": "user:ou_xxx",      "sessionKey": "agent:main:feishu:direct:ou_xxx" },
+        { "channel": "feishu",   "accountId": "default", "to": "chat:oc_xxx",      "sessionKey": "agent:main:feishu:group:oc_xxx" },
+        { "channel": "qqbot",    "accountId": "default", "to": "qqbot:c2c:abc123", "sessionKey": "agent:main:qqbot:direct:abc123" }
       ]
     }
   }
@@ -75,13 +77,19 @@ channel's plugin has to be **installed, configured, and the gateway
 restarted** first. Setup writes `sessionKey`; every target must point at an
 existing OpenClaw session.
 
-| channel           | Plugin                            | `to` format                                                    |
+> **`to` is the downstream plugin's outbound address — always copy
+> `origin.to` verbatim from the matching session** (in OpenClaw's WebUI
+> Sessions tab, or `~/.openclaw/agents/main/sessions/sessions.json`). The
+> prefix is **not** optional, and passing a bare id will fail at the
+> downstream plugin. `to` and `sessionKey` must come from the same session.
+
+| channel           | Plugin                            | `to` format (matches `origin.to`)                              |
 | ----------------- | --------------------------------- | -------------------------------------------------------------- |
-| `whatsapp`        | `@openclaw/whatsapp`              | WhatsApp JID or phone number                                   |
-| `telegram`        | `@openclaw/telegram`              | Telegram chat id (topic per Telegram plugin format)            |
-| `discord`         | `@openclaw/discord`               | Discord channel id / DM / thread id                            |
-| `feishu`          | `@larksuite/openclaw-lark`        | Lark open_id / chat_id etc.                                    |
-| `openclaw-weixin` | `@tencent-weixin/openclaw-weixin` | WeChat user id — recipient should have messaged the bot first  |
+| `whatsapp`        | `@openclaw/whatsapp`              | WhatsApp JID (e.g. `15551234567@s.whatsapp.net`)               |
+| `telegram`        | `@openclaw/telegram`              | Telegram chat id (numeric, topic per Telegram plugin format)   |
+| `discord`         | `@openclaw/discord`               | Discord channel / DM / thread id (numeric)                     |
+| `feishu`          | `@larksuite/openclaw-lark`        | `user:<open_id>` for DMs · `chat:<chat_id>` / `channel:<chat_id>` for groups |
+| `openclaw-weixin` | `@tencent-weixin/openclaw-weixin` | WeChat user id — recipient must have messaged the bot first    |
 | `qqbot`           | `@openclaw/qqbot`                 | `qqbot:c2c:<openid>` / `qqbot:group:<groupid>`                 |
 
 Common installs:
