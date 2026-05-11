@@ -36,28 +36,21 @@ export type ConfigureResult = {
 
 const CUSTOM_BASE_URL_VALUE = "__custom__";
 
-function getBaseUrlOptions(t: Translator) {
-  return [
-    { label: "United States", value: GLOBAL_BASE_URL },
-    { label: "United Kingdom", value: GLOBAL_BASE_URL },
-    { label: "France", value: GLOBAL_BASE_URL },
-    { label: "Spain", value: GLOBAL_BASE_URL },
-    { label: "Japan", value: GLOBAL_BASE_URL },
-    { label: "Canada", value: GLOBAL_BASE_URL },
-    { label: "Australia", value: GLOBAL_BASE_URL },
-    { label: "Russia", value: GLOBAL_BASE_URL },
-    { label: "South Korea", value: GLOBAL_BASE_URL },
-    { label: "Singapore", value: GLOBAL_BASE_URL },
-    { label: "China", value: CHINA_BASE_URL },
-    { label: t("env.optionCustom"), value: CUSTOM_BASE_URL_VALUE, hint: t("env.hintCustom") },
-  ];
-}
-
-export function pickInitialLocale(overrides: ConfigureOverrides, saved: Locale | null): Locale {
-  if (overrides.locale) return overrides.locale;
-  if (saved) return saved;
-  return DEFAULT_LOCALE;
-}
+// All non-China locales currently share the global endpoint; the per-country
+// labels exist so users find the option by the country they're in.
+const BASE_URL_PRESETS: ReadonlyArray<{ label: string; value: string }> = [
+  { label: "United States", value: GLOBAL_BASE_URL },
+  { label: "United Kingdom", value: GLOBAL_BASE_URL },
+  { label: "France", value: GLOBAL_BASE_URL },
+  { label: "Spain", value: GLOBAL_BASE_URL },
+  { label: "Japan", value: GLOBAL_BASE_URL },
+  { label: "Canada", value: GLOBAL_BASE_URL },
+  { label: "Australia", value: GLOBAL_BASE_URL },
+  { label: "Russia", value: GLOBAL_BASE_URL },
+  { label: "South Korea", value: GLOBAL_BASE_URL },
+  { label: "Singapore", value: GLOBAL_BASE_URL },
+  { label: "China", value: CHINA_BASE_URL },
+];
 
 export async function chooseLocale(
   initialLocale: Locale,
@@ -83,32 +76,31 @@ export async function chooseLocale(
   return next;
 }
 
-function resolveInitialConfig(t: Translator): OpenclawConfig {
-  try {
-    return readConfig();
-  } catch (err) {
-    if (err instanceof ConfigReadError) {
-      log(t("diagnose.configReadFail", { path: err.path }));
-      throw err;
-    }
-    throw err;
-  }
-}
-
 export async function runConfigure(
   t: Translator,
   setLocale: (next: Locale) => void,
   overrides: ConfigureOverrides = {},
 ): Promise<ConfigureResult> {
-  const existing = resolveInitialConfig(t);
-  const initialLocale = pickInitialLocale(overrides, null);
-  const alreadyDecided = overrides.locale != null;
-  const locale = await chooseLocale(initialLocale, alreadyDecided, t, setLocale);
+  let existing: OpenclawConfig;
+  try {
+    existing = readConfig();
+  } catch (err) {
+    if (err instanceof ConfigReadError) {
+      log(t("diagnose.configReadFail", { path: err.path }));
+    }
+    throw err;
+  }
+
+  const initialLocale = overrides.locale ?? DEFAULT_LOCALE;
+  const locale = await chooseLocale(initialLocale, overrides.locale != null, t, setLocale);
 
   let baseUrl = overrides.baseUrl ?? "";
   if (!baseUrl) {
     const guardCancel = makeGuardCancel(t);
-    const baseUrlOptions = getBaseUrlOptions(t);
+    const baseUrlOptions = [
+      ...BASE_URL_PRESETS,
+      { label: t("env.optionCustom"), value: CUSTOM_BASE_URL_VALUE, hint: t("env.hintCustom") },
+    ];
     const currentBaseUrl = String(
       (existing.channels?.[CHANNEL_ID] as { baseUrl?: unknown } | undefined)?.baseUrl ?? "",
     ).trim();

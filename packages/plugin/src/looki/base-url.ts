@@ -1,45 +1,33 @@
 /**
- * Looki exposes two upstream shapes:
- *   - prod   (https://open.looki.ai)   channel under /openclaw/   tools under /api/v1/
- *   - local  (http://127.0.0.1:9001)   channel under /openclaw-looki/   tools under /agents/
+ * Looki upstream shape (unified):
+ *   - channel under /message-channel/
+ *   - tools   under /api/v1/
  *
- * We pick the prefix by hostname so the user only ever configures a single
- * `channels.openclaw-looki.baseUrl` and both the getupdates poller and the
- * memory tool target the correct upstream paths.
+ * The user configures a single `channels.openclaw-looki.baseUrl`; both the
+ * getupdates poller and the memory/task tools append the kind-specific
+ * prefix at request time.
  */
-
-const LOCAL_HOST_PATTERN = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|::1|\[::1\]|\d+\.\d+\.\d+\.\d+)$/;
-
-function ensureTrailingSlash(url: string): string {
-  return url.endsWith("/") ? url : `${url}/`;
-}
-
-function isLocalHost(hostname: string): boolean {
-  if (!hostname) return false;
-  if (LOCAL_HOST_PATTERN.test(hostname)) return true;
-  // local LAN suffixes that are never published prod Looki endpoints
-  return (
-    hostname.endsWith(".local") ||
-    hostname.endsWith(".lan") ||
-    hostname.endsWith(".internal")
-  );
-}
 
 export type LookiEndpointKind = "channel" | "tool";
 
-function getPrefix(hostname: string, kind: LookiEndpointKind): string {
-  if (isLocalHost(hostname)) {
-    return kind === "channel" ? "openclaw-looki" : "agents";
-  }
-  return kind === "channel" ? "openclaw" : "api/v1";
-}
+const ENDPOINT_PREFIX: Record<LookiEndpointKind, string> = {
+  channel: "message-channel",
+  tool: "api/v1",
+};
 
 /**
  * Strip any trailing slash and any legacy path (e.g. an older config that
  * included `/openclaw-looki` or `/api/v1` in baseUrl). We always rebuild from
  * the host root so adding kind-specific prefix behavior here stays consistent.
  */
-const KNOWN_LEGACY_PREFIXES = new Set(["/", "/openclaw", "/openclaw-looki", "/api/v1", "/agents"]);
+const KNOWN_LEGACY_PREFIXES = new Set([
+  "/",
+  "/message-channel",
+  "/openclaw",
+  "/openclaw-looki",
+  "/api/v1",
+  "/agents",
+]);
 const warnedBaseUrls = new Set<string>();
 
 export function normalizeLookiBaseUrl(rawBaseUrl: string): string {
@@ -71,13 +59,8 @@ export function buildLookiUrl(
   kind: LookiEndpointKind = "channel",
 ): URL {
   const normalized = normalizeLookiBaseUrl(baseUrl);
-  let hostname = "";
-  try {
-    hostname = new URL(normalized).hostname;
-  } catch {
-    // fall through — prod prefix
-  }
-  const prefix = getPrefix(hostname, kind);
-  const root = ensureTrailingSlash(`${normalized}/${prefix}`);
+  // URL resolution treats a root without trailing "/" as a sibling path, so
+  // append one before resolving `path` against it.
+  const root = `${normalized}/${ENDPOINT_PREFIX[kind]}/`;
   return new URL(path, root);
 }

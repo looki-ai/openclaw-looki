@@ -32,13 +32,6 @@ const t: Translator = makeTranslator(() => currentLocale, {
   minOpenclawVersion: MIN_OPENCLAW_VERSION,
 });
 
-function initLocale(options: CliOptions): void {
-  if (options.locale) {
-    setLocale(options.locale);
-    return;
-  }
-}
-
 function printHelp(): void {
   console.log(`
 ${t("help.usage")}
@@ -152,8 +145,6 @@ async function main(): Promise<number> {
     printHelp();
     return 0;
   }
-
-  initLocale(parsed);
 
   if (parsed.command === "install") {
     await runInstall(parsed);

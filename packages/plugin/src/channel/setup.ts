@@ -15,40 +15,39 @@ import {
   createTranslator,
   patchLookiChannelConfig,
   detectForwardTargets,
-  getWeixinAccountIds,
-  getWeixinContextUserIds,
-  getQQBotKnownTargets,
-  isValidFeishuTo,
+  listForwardSessionsForChannel,
   buildInitialDraftValues,
   buildInitialDraftAccountIds,
+  buildInitialDraftSessionKeys,
   buildForwardTargetsFromDraft,
   computeInitialValidTargetIds,
-  formatDraftHint,
-  isForwardTargetDraftValid,
-  readFeishuAllowFrom,
   type ForwardDraftMap,
+  type ForwardSessionCandidate,
 } from "../shared/index.js";
 
 let wizardLocale: Locale = DEFAULT_LOCALE;
 const MESSAGES = loadLocaleMessages();
 const tw = createTranslator(MESSAGES, () => wizardLocale);
 
-function getBaseUrlOptions() {
-  return [
-    { value: GLOBAL_BASE_URL, label: "United States" },
-    { value: GLOBAL_BASE_URL, label: "United Kingdom" },
-    { value: GLOBAL_BASE_URL, label: "France" },
-    { value: GLOBAL_BASE_URL, label: "Spain" },
-    { value: GLOBAL_BASE_URL, label: "Japan" },
-    { value: GLOBAL_BASE_URL, label: "Canada" },
-    { value: GLOBAL_BASE_URL, label: "Australia" },
-    { value: GLOBAL_BASE_URL, label: "Russia" },
-    { value: GLOBAL_BASE_URL, label: "South Korea" },
-    { value: GLOBAL_BASE_URL, label: "Singapore" },
-    { value: CHINA_BASE_URL, label: "China" },
-  ];
-}
+// All non-China locales currently share the global endpoint; the per-country
+// labels exist so users find the option by the country they're in.
+const BASE_URL_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: GLOBAL_BASE_URL, label: "United States" },
+  { value: GLOBAL_BASE_URL, label: "United Kingdom" },
+  { value: GLOBAL_BASE_URL, label: "France" },
+  { value: GLOBAL_BASE_URL, label: "Spain" },
+  { value: GLOBAL_BASE_URL, label: "Japan" },
+  { value: GLOBAL_BASE_URL, label: "Canada" },
+  { value: GLOBAL_BASE_URL, label: "Australia" },
+  { value: GLOBAL_BASE_URL, label: "Russia" },
+  { value: GLOBAL_BASE_URL, label: "South Korea" },
+  { value: GLOBAL_BASE_URL, label: "Singapore" },
+  { value: CHINA_BASE_URL, label: "China" },
+];
 
+// Thin type bridge: plugin-sdk's `OpenClawConfig` and our internal
+// `OpenClawConfigShape` (from shared/config.ts) are structurally compatible
+// but nominally different, so we cast in one place instead of 5 call sites.
 function patchLookiConfig(cfg: OpenClawConfig, patch: Record<string, unknown>): OpenClawConfig {
   return patchLookiChannelConfig(
     cfg as Parameters<typeof patchLookiChannelConfig>[0],
@@ -56,262 +55,62 @@ function patchLookiConfig(cfg: OpenClawConfig, patch: Record<string, unknown>): 
   ) as OpenClawConfig;
 }
 
-function asConfigShape(cfg: OpenClawConfig): Parameters<typeof readFeishuAllowFrom>[0] {
-  return cfg as Parameters<typeof readFeishuAllowFrom>[0];
-}
-
-function buildForwardSelectionOptions(
-  targets: SupportedForwardPlugin[],
-  validTargetIds: string[],
-  draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-  doneValue: string,
-): Array<{ value: string; label: string; hint: string }> {
-  const options: Array<{ value: string; label: string; hint: string }> = targets.map((target) => {
-    const currentValue = formatDraftHint(target, draftValues, draftAccountIds);
-    const configured = validTargetIds.includes(target.id);
-    return {
-      value: target.id,
-      label: `${configured ? "◼" : "◻"} ${target.label}`,
-      hint: configured
-        ? tw("forward.configuredHint", { value: currentValue })
-        : currentValue
-          ? tw("forward.invalidHint", { value: currentValue })
-          : tw("forward.emptyHint"),
-    };
-  });
-  options.push({
-    value: doneValue,
-    label: tw("forward.doneLabel"),
-    hint: tw("forward.doneHint", { count: validTargetIds.length }),
-  });
-  return options;
-}
-
-async function noteForwardListControls(prompter: WizardPrompter) {
-  await prompter.note(tw("listControls.body"), tw("listControls.title"));
-}
-
-async function promptTargetAction(params: {
-  prompter: WizardPrompter;
-  target: SupportedForwardPlugin;
-  configured: boolean;
-}) {
-  await params.prompter.note(
-    params.configured ? tw("pageControls.configured") : tw("pageControls.unconfigured"),
-    tw("pageControls.title"),
-  );
-
-  if (!params.configured) return "edit";
-
-  return await params.prompter.select({
-    message: tw("action.message", { label: params.target.label }),
-    options: [
-      { value: "edit", label: tw("action.edit"), hint: tw("action.editHint") },
-      { value: "clear", label: tw("action.clear"), hint: tw("action.clearHint") },
-      { value: "back", label: tw("action.back"), hint: tw("action.backHint") },
-    ],
-    initialValue: "edit",
-  });
-}
-
-async function promptTextWithBack(params: {
-  prompter: WizardPrompter;
-  message: string;
-  placeholder?: string;
-  initialValue?: string;
-  validate?: (input: string) => string | undefined;
-}) {
-  try {
-    const value = await params.prompter.text({
-      message: params.message,
-      placeholder: params.placeholder,
-      initialValue: params.initialValue,
-      validate: params.validate ? (input) => params.validate!(String(input ?? "")) : undefined,
-    });
-    return String(value).trim();
-  } catch (error) {
-    if (error instanceof Error && error.name === "WizardCancelledError") {
-      return null;
-    }
-    throw error;
-  }
-}
-
-async function promptFeishuToWithBack(params: {
-  prompter: WizardPrompter;
-  initialValue?: string;
-  candidates: string[];
-}) {
-  return promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("feishu.toMessage"),
-    placeholder: "ou_xxx",
-    initialValue: params.initialValue,
-    validate: (input) =>
-      isValidFeishuTo(input, params.candidates) ? undefined : tw("feishu.invalidAllowFrom"),
-  });
-}
-
-async function promptWeixinTargetWithBack(params: {
-  prompter: WizardPrompter;
-  initialTo?: string;
-  initialAccountId?: string;
-}) {
-  await params.prompter.note(tw("weixin.targetHelp"), tw("weixin.targetHelpTitle"));
-
-  const accountIds = getWeixinAccountIds();
-  if (accountIds.length > 0) {
-    await params.prompter.note(
-      tw("weixin.accountsDetected", { values: accountIds.join(", ") }),
-      tw("weixin.accountsTitle"),
-    );
-  }
-
-  const accountId = await promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("weixin.accountIdMessage"),
-    placeholder: accountIds[0] || "weixin-account-id",
-    initialValue: params.initialAccountId || accountIds[0] || undefined,
-    validate: (input) => (String(input ?? "").trim() ? undefined : tw("field.required")),
-  });
-  if (accountId === null) return null;
-
-  const userIds = getWeixinContextUserIds(accountId);
-  if (userIds.length > 0) {
-    await params.prompter.note(
-      tw("weixin.usersDetected", { values: userIds.join(", ") }),
-      tw("weixin.usersTitle"),
-    );
-  }
-
-  const to = await promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("weixin.toMessage"),
-    placeholder: userIds[0] || "weixin_user_id",
-    initialValue: params.initialTo || userIds[0] || undefined,
-    validate: (input) => (String(input ?? "").trim() ? undefined : tw("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function promptQQBotTargetWithBack(params: {
-  prompter: WizardPrompter;
-  target: SupportedForwardPlugin;
-  initialTo?: string;
-  initialAccountId?: string;
-}) {
-  await params.prompter.note(tw("qqbot.targetHelp"), tw("qqbot.targetHelpTitle"));
-
-  const knownTargets = getQQBotKnownTargets();
-  const accountIds = [...new Set(knownTargets.map((entry) => entry.accountId).filter(Boolean))];
-  const defaultAccountId =
-    params.initialAccountId || accountIds[0] || defaultForwardAccountId(params.target) || undefined;
-
-  if (knownTargets.length > 0) {
-    await params.prompter.note(
-      tw("qqbot.targetsDetected", {
-        values: knownTargets
-          .map((entry) =>
-            [entry.accountId ? `accountId=${entry.accountId}` : "", `to=${entry.to}`]
-              .filter(Boolean)
-              .join(" "),
-          )
-          .join(", "),
-      }),
-      tw("qqbot.targetsTitle"),
-    );
-  }
-
-  const accountId = await promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("qqbot.accountIdMessage"),
-    placeholder: defaultAccountId || "default",
-    initialValue: defaultAccountId,
-  });
-  if (accountId === null) return null;
-
-  const matchedTargets = knownTargets.filter(
-    (entry) => !accountId || entry.accountId === accountId,
-  );
-  const defaultTo = params.initialTo || matchedTargets[0]?.to || knownTargets[0]?.to || undefined;
-
-  const to = await promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("qqbot.toMessage"),
-    placeholder: defaultTo || "qqbot:c2c:<user_openid>",
-    initialValue: defaultTo,
-    validate: (input) => (String(input ?? "").trim() ? undefined : tw("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
-}
-
-async function promptGenericTargetWithBack(params: {
-  prompter: WizardPrompter;
-  target: SupportedForwardPlugin;
-  initialTo?: string;
-  initialAccountId?: string;
-}) {
-  const accountId = await promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("generic.accountIdMessage", { label: params.target.label }),
-    placeholder: defaultForwardAccountId(params.target) || "default",
-    initialValue: params.initialAccountId || defaultForwardAccountId(params.target) || undefined,
-  });
-  if (accountId === null) return null;
-
-  const to = await promptTextWithBack({
-    prompter: params.prompter,
-    message: tw("generic.toMessage", { label: params.target.label }),
-    placeholder: params.target.placeholder,
-    initialValue: params.initialTo || undefined,
-    validate: (input) => (String(input ?? "").trim() ? undefined : tw("field.required")),
-  });
-  if (to === null) return null;
-
-  return { accountId, to };
+function formatSessionHint(entry: ForwardSessionCandidate): string {
+  const parts: string[] = [entry.peerKind === "group" ? "group" : "direct"];
+  if (entry.accountId && entry.accountId !== "default") parts.push(`@ ${entry.accountId}`);
+  if (entry.label && entry.label !== entry.to) parts.push(entry.label);
+  return parts.join(" · ");
 }
 
 async function configureForwardTargets(params: {
   cfg: OpenClawConfig;
   prompter: WizardPrompter;
   availableTargets: SupportedForwardPlugin[];
+  sessionsByChannel: Map<string, ForwardSessionCandidate[]>;
 }): Promise<LookiForwardTarget[]> {
-  const { cfg, prompter, availableTargets } = params;
-  const cfgShape = asConfigShape(cfg);
-  const existingAllowFrom = readFeishuAllowFrom(cfgShape);
-  const draftValues = buildInitialDraftValues(cfgShape, availableTargets);
-  const draftAccountIds = buildInitialDraftAccountIds(cfgShape, availableTargets);
+  const { cfg, prompter, availableTargets, sessionsByChannel } = params;
+  const cfgShape = cfg as Parameters<typeof buildInitialDraftValues>[0];
+  const draftValues: ForwardDraftMap = buildInitialDraftValues(cfgShape, availableTargets);
+  const draftAccountIds: ForwardDraftMap = buildInitialDraftAccountIds(cfgShape, availableTargets);
+  const draftSessionKeys: ForwardDraftMap = buildInitialDraftSessionKeys(cfgShape, availableTargets);
   const validTargetIds = new Set(
-    computeInitialValidTargetIds(availableTargets, draftValues, draftAccountIds, existingAllowFrom),
+    computeInitialValidTargetIds(availableTargets, draftValues, draftSessionKeys),
   );
   const doneValue = "__done__";
 
-  const refreshValidity = (target: SupportedForwardPlugin): void => {
-    if (isForwardTargetDraftValid(target, draftValues, draftAccountIds, existingAllowFrom)) {
-      validTargetIds.add(target.id);
-    } else {
-      validTargetIds.delete(target.id);
-    }
+  const currentHint = (target: SupportedForwardPlugin): string => {
+    const to = draftValues[target.id];
+    if (!to) return tw("forward.emptyHint");
+    const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
+    const bits = [to];
+    if (accountId && accountId !== "default") bits.push(`@ ${accountId}`);
+    return tw("forward.configuredHint", { value: bits.join(" · ") });
+  };
+
+  const buildPluginListOptions = () => {
+    const options = availableTargets.map((target) => {
+      const configured = validTargetIds.has(target.id);
+      return {
+        value: target.id,
+        label: `${configured ? "◼" : "◻"} ${target.label}`,
+        hint: currentHint(target),
+      };
+    });
+    options.push({
+      value: doneValue,
+      label: tw("forward.doneLabel"),
+      hint: tw("forward.doneHint", { count: validTargetIds.size }),
+    });
+    return options;
   };
 
   while (true) {
-    await noteForwardListControls(prompter);
-    const idsList = [...validTargetIds];
+    await prompter.note(tw("listControls.body"), tw("listControls.title"));
+    const firstChoice = validTargetIds.values().next().value;
     const choice: string = await prompter.select({
       message: tw("forward.targetMessage"),
-      options: buildForwardSelectionOptions(
-        availableTargets,
-        idsList,
-        draftValues,
-        draftAccountIds,
-        doneValue,
-      ),
-      initialValue: idsList[0] ?? availableTargets[0]?.id ?? doneValue,
+      options: buildPluginListOptions(),
+      initialValue: firstChoice ?? availableTargets[0]?.id ?? doneValue,
     });
 
     if (choice === doneValue) {
@@ -320,69 +119,64 @@ async function configureForwardTargets(params: {
         [...validTargetIds],
         draftValues,
         draftAccountIds,
+        draftSessionKeys,
       );
     }
 
     const target = availableTargets.find((item) => item.id === choice);
     if (!target) continue;
-    const configured = validTargetIds.has(target.id);
-    const action = await promptTargetAction({ prompter, target, configured });
-    if (action === "back") continue;
-    if (action === "clear") {
+
+    const sessions = sessionsByChannel.get(target.channel) ?? [];
+    const CLEAR_VALUE = "__clear__";
+    const BACK_VALUE = "__back__";
+
+    const sessionOptions = sessions.map((entry, index) => ({
+      value: String(index),
+      label: entry.to,
+      hint: formatSessionHint(entry),
+    }));
+    if (validTargetIds.has(target.id)) {
+      sessionOptions.push({
+        value: CLEAR_VALUE,
+        label: tw("action.clear"),
+        hint: tw("action.clearHint"),
+      });
+    }
+    sessionOptions.push({
+      value: BACK_VALUE,
+      label: tw("action.back"),
+      hint: tw("action.backHint"),
+    });
+
+    const currentSessionKey = draftSessionKeys[target.id];
+    const currentTo = draftValues[target.id];
+    const matchedIndex = currentSessionKey
+      ? sessions.findIndex((entry) => entry.sessionKey === currentSessionKey)
+      : currentTo
+        ? sessions.findIndex((entry) => entry.to === currentTo || entry.peerId === currentTo)
+        : -1;
+
+    const sessionChoice: string = await prompter.select({
+      message: tw("session.message", { label: target.label }),
+      options: sessionOptions,
+      initialValue: matchedIndex >= 0 ? String(matchedIndex) : sessionOptions[0]?.value,
+    });
+
+    if (sessionChoice === BACK_VALUE) continue;
+    if (sessionChoice === CLEAR_VALUE) {
       draftValues[target.id] = "";
-      draftAccountIds[target.id] = "";
+      draftAccountIds[target.id] = defaultForwardAccountId(target) || "";
+      delete draftSessionKeys[target.id];
       validTargetIds.delete(target.id);
       continue;
     }
 
-    if (target.channel === "feishu") {
-      if (existingAllowFrom.length > 0) {
-        await prompter.note(
-          tw("feishu.allowFromDetected", { values: existingAllowFrom.join(", ") }),
-          tw("feishu.allowFromTitle"),
-        );
-      } else {
-        await prompter.note(tw("feishu.allowFromEmpty"), tw("feishu.allowFromTitle"));
-      }
-      const value = await promptFeishuToWithBack({
-        prompter,
-        initialValue: draftValues[choice] || undefined,
-        candidates: existingAllowFrom,
-      });
-      if (value === null) continue;
-      draftValues[choice] = value;
-    } else if (target.channel === "openclaw-weixin") {
-      const value = await promptWeixinTargetWithBack({
-        prompter,
-        initialTo: draftValues[choice] || undefined,
-        initialAccountId: draftAccountIds[choice] || undefined,
-      });
-      if (value === null) continue;
-      draftValues[choice] = value.to;
-      draftAccountIds[choice] = value.accountId;
-    } else if (target.channel === "qqbot") {
-      const value = await promptQQBotTargetWithBack({
-        prompter,
-        target,
-        initialTo: draftValues[choice] || undefined,
-        initialAccountId: draftAccountIds[choice] || undefined,
-      });
-      if (value === null) continue;
-      draftValues[choice] = value.to;
-      draftAccountIds[choice] = value.accountId;
-    } else {
-      const value = await promptGenericTargetWithBack({
-        prompter,
-        target,
-        initialTo: draftValues[choice] || undefined,
-        initialAccountId: draftAccountIds[choice] || undefined,
-      });
-      if (value === null) continue;
-      draftValues[choice] = value.to;
-      draftAccountIds[choice] = value.accountId;
-    }
-
-    refreshValidity(target);
+    const picked = sessions[Number(sessionChoice)];
+    if (!picked) continue;
+    draftValues[target.id] = picked.to;
+    draftAccountIds[target.id] = picked.accountId;
+    draftSessionKeys[target.id] = picked.sessionKey;
+    validTargetIds.add(target.id);
   }
 }
 
@@ -418,15 +212,14 @@ export const lookiSetupWizard: ChannelSetupWizard = {
       initialValue: DEFAULT_LOCALE,
     });
 
-    const baseUrlOptions = getBaseUrlOptions();
     const currentBaseUrl = resolveLookiAccount(cfg).baseUrl;
     const initialBaseUrl =
-      baseUrlOptions.find((option) => option.value === currentBaseUrl)?.value ??
-      baseUrlOptions[0].value;
+      BASE_URL_OPTIONS.find((option) => option.value === currentBaseUrl)?.value ??
+      BASE_URL_OPTIONS[0].value;
 
     const baseUrl = await prompter.select({
       message: tw("env.message"),
-      options: baseUrlOptions.map((option) => ({
+      options: BASE_URL_OPTIONS.map((option) => ({
         value: option.value,
         label: option.label,
       })),
@@ -461,10 +254,10 @@ export const lookiSetupWizard: ChannelSetupWizard = {
     },
   ],
   finalize: async ({ cfg, prompter }) => {
-    const availableTargets = [
+    const detected = [
       ...detectForwardTargets(cfg as Parameters<typeof detectForwardTargets>[0]),
     ];
-    if (availableTargets.length === 0) {
+    if (detected.length === 0) {
       await prompter.note(tw("plugin.none"), tw("plugin.title"));
       return {
         cfg: patchLookiConfig(cfg, {
@@ -474,14 +267,53 @@ export const lookiSetupWizard: ChannelSetupWizard = {
         }),
       };
     }
+
+    const sessionsByChannel = new Map<string, ForwardSessionCandidate[]>();
+    for (const target of detected) {
+      sessionsByChannel.set(target.channel, listForwardSessionsForChannel(target.channel));
+    }
+    const availableTargets = detected.filter(
+      (target) => (sessionsByChannel.get(target.channel) ?? []).length > 0,
+    );
+    const disabledTargets = detected.filter(
+      (target) => (sessionsByChannel.get(target.channel) ?? []).length === 0,
+    );
+
+    if (availableTargets.length === 0) {
+      await prompter.note(
+        tw("plugin.detectedNoSessions", {
+          labels: detected.map((target) => target.label).join(", "),
+        }),
+        tw("plugin.title"),
+      );
+      return {
+        cfg: patchLookiConfig(cfg, {
+          enabled: true,
+          accountId: DEFAULT_ACCOUNT_ID,
+          forwardTo: [],
+        }),
+      };
+    }
+
+    const detectedLine = tw("plugin.detected", {
+      labels: availableTargets.map((target) => target.label).join(", "),
+    });
+    const disabledLine =
+      disabledTargets.length > 0
+        ? tw("plugin.noSessionsSuffix", {
+            labels: disabledTargets.map((target) => target.label).join(", "),
+          })
+        : "";
     await prompter.note(
-      tw("plugin.detected", { labels: availableTargets.map((target) => target.label).join(", ") }),
+      [detectedLine, disabledLine].filter(Boolean).join("\n"),
       tw("plugin.title"),
     );
+
     const forwardTo = await configureForwardTargets({
       cfg,
       prompter,
       availableTargets,
+      sessionsByChannel,
     });
     return {
       cfg: patchLookiConfig(cfg, {

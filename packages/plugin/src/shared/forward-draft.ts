@@ -1,7 +1,6 @@
 import { CHANNEL_ID } from "./constants.js";
 import type { OpenClawConfigShape } from "./config.js";
 import { type SupportedForwardPlugin, defaultForwardAccountId } from "./forward-plugins.js";
-import { getExistingFeishuAllowFrom, isValidFeishuTo } from "./discovery.js";
 
 export type ForwardDraftMap = Record<string, string>;
 
@@ -9,25 +8,28 @@ export type ForwardDraftTarget = {
   channel: string;
   accountId?: string;
   to: string;
+  sessionKey: string;
 };
 
-function readExistingForwardTargets(
-  cfg: OpenClawConfigShape,
-): Array<{ channel?: string; accountId?: string; to?: string }> {
+type ExistingForwardEntry = {
+  channel?: string;
+  accountId?: string;
+  to?: string;
+  sessionKey?: unknown;
+};
+
+function readExistingForwardTargets(cfg: OpenClawConfigShape): ExistingForwardEntry[] {
   const channels = cfg.channels ?? {};
   const section = channels[CHANNEL_ID] as { forwardTo?: unknown } | undefined;
   return Array.isArray(section?.forwardTo)
-    ? (section!.forwardTo as Array<{ channel?: string; accountId?: string; to?: string }>)
+    ? (section!.forwardTo as ExistingForwardEntry[])
     : [];
 }
 
 function matchExistingByChannel<T>(
   cfg: OpenClawConfigShape,
   availableTargets: readonly SupportedForwardPlugin[],
-  selector: (
-    matched: { channel?: string; accountId?: string; to?: string } | null,
-    target: SupportedForwardPlugin,
-  ) => T,
+  selector: (matched: ExistingForwardEntry | null, target: SupportedForwardPlugin) => T,
 ): Record<string, T> {
   const currentTargets = readExistingForwardTargets(cfg);
   const usedIndexes = new Set<number>();
@@ -62,34 +64,33 @@ export function buildInitialDraftAccountIds(
   );
 }
 
+export function buildInitialDraftSessionKeys(
+  cfg: OpenClawConfigShape,
+  availableTargets: readonly SupportedForwardPlugin[],
+): ForwardDraftMap {
+  return matchExistingByChannel(cfg, availableTargets, (matched) => {
+    const raw = matched?.sessionKey;
+    return typeof raw === "string" ? raw : "";
+  });
+}
+
+/** A target is valid once it has `to` and `sessionKey` in the draft. */
 export function isForwardTargetDraftValid(
   target: SupportedForwardPlugin,
   draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-  existingAllowFrom: string[],
+  draftSessionKeys: ForwardDraftMap,
 ): boolean {
-  const to = draftValues[target.id];
-  if (!to) return false;
-  if (target.channel === "feishu") return isValidFeishuTo(to, existingAllowFrom);
-  if (target.channel === "openclaw-weixin")
-    return Boolean(draftAccountIds[target.id] || defaultForwardAccountId(target));
-  return true;
+  return Boolean(draftValues[target.id] && draftSessionKeys[target.id]);
 }
 
-export function formatDraftHint(
-  target: SupportedForwardPlugin,
+export function computeInitialValidTargetIds(
+  availableTargets: readonly SupportedForwardPlugin[],
   draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-): string {
-  const to = draftValues[target.id];
-  const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
-  if (!to && !accountId) return "";
-  if (target.channel === "openclaw-weixin" || target.channel === "qqbot") {
-    return [accountId ? `accountId=${accountId}` : "", to ? `to=${to}` : ""]
-      .filter(Boolean)
-      .join(" ");
-  }
-  return to;
+  draftSessionKeys: ForwardDraftMap,
+): string[] {
+  return availableTargets
+    .filter((target) => isForwardTargetDraftValid(target, draftValues, draftSessionKeys))
+    .map((target) => target.id);
 }
 
 export function buildForwardTargetsFromDraft(
@@ -97,33 +98,21 @@ export function buildForwardTargetsFromDraft(
   validTargetIds: readonly string[],
   draftValues: ForwardDraftMap,
   draftAccountIds: ForwardDraftMap,
+  draftSessionKeys: ForwardDraftMap,
 ): ForwardDraftTarget[] {
   const validSet = new Set(validTargetIds);
-  return availableTargets
-    .filter((target) => validSet.has(target.id))
-    .map((target) => {
-      const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
-      return {
-        channel: target.channel,
-        ...(accountId ? { accountId } : {}),
-        to: draftValues[target.id],
-      };
+  const targets: ForwardDraftTarget[] = [];
+  for (const target of availableTargets) {
+    if (!validSet.has(target.id)) continue;
+    const sessionKey = draftSessionKeys[target.id];
+    if (!sessionKey) continue;
+    const accountId = draftAccountIds[target.id] || defaultForwardAccountId(target);
+    targets.push({
+      channel: target.channel,
+      ...(accountId ? { accountId } : {}),
+      to: draftValues[target.id],
+      sessionKey,
     });
-}
-
-export function computeInitialValidTargetIds(
-  availableTargets: readonly SupportedForwardPlugin[],
-  draftValues: ForwardDraftMap,
-  draftAccountIds: ForwardDraftMap,
-  existingAllowFrom: string[],
-): string[] {
-  return availableTargets
-    .filter((target) =>
-      isForwardTargetDraftValid(target, draftValues, draftAccountIds, existingAllowFrom),
-    )
-    .map((target) => target.id);
-}
-
-export function readFeishuAllowFrom(cfg: OpenClawConfigShape): string[] {
-  return getExistingFeishuAllowFrom(cfg);
+  }
+  return targets;
 }

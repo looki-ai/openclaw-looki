@@ -1,74 +1,22 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import {
+  buildOutboundSessionContext,
+  deliverOutboundPayloads,
+  type DeliverOutboundPayloadsParams,
+} from "openclaw/plugin-sdk/outbound-runtime";
 
+import { parseSessionKey } from "../shared/session-key.js";
 import type { LookiForwardTarget } from "./types.js";
 
-export type ForwardOutboundAdapter = {
-  sendText?: (ctx: {
-    cfg: OpenClawConfig;
-    to: string;
-    text: string;
-    accountId?: string | null;
-  }) => Promise<{ channel?: string; messageId?: string; meta?: unknown } | void>;
-};
-
-/**
- * The subset of OpenClaw's channel runtime this plugin consumes. Only
- * `outbound.loadAdapter` is required today; everything else is ignored.
- */
-export type ForwardChannelRuntime = {
-  outbound?: {
-    loadAdapter?: (channel: string) => Promise<ForwardOutboundAdapter | undefined>;
-  };
-};
-
-const INSTALL_HINTS: Record<string, string> = {
-  whatsapp: "install @openclaw/whatsapp",
-  telegram: "install @openclaw/telegram",
-  discord: "install @openclaw/discord",
-  feishu: "install @larksuite/openclaw-lark",
-  "openclaw-weixin": "install @tencent-weixin/openclaw-weixin",
-  qqbot: "install @openclaw/qqbot",
-};
+type OutboundChannel = DeliverOutboundPayloadsParams["channel"];
 
 export type ForwardDeps = {
   cfg: OpenClawConfig;
   forwardTo: LookiForwardTarget[];
-  channelRuntime?: ForwardChannelRuntime;
+  idempotencyKey?: string;
   log: (msg: string) => void;
   errLog: (msg: string) => void;
 };
-
-function formatTarget(target: LookiForwardTarget): string {
-  return `${target.channel}:${target.accountId ?? "default"}:${target.to}`;
-}
-
-async function sendToTarget(
-  target: LookiForwardTarget,
-  text: string,
-  cfg: OpenClawConfig,
-  runtime: ForwardChannelRuntime | undefined,
-): Promise<void> {
-  const loadAdapter = runtime?.outbound?.loadAdapter;
-  if (!loadAdapter) {
-    throw new Error(
-      "OpenClaw runtime does not expose channel.outbound.loadAdapter; upgrade OpenClaw to >=2026.4.24 and restart the gateway",
-    );
-  }
-  const adapter = await loadAdapter(target.channel);
-  if (!adapter?.sendText) {
-    const hint = INSTALL_HINTS[target.channel];
-    const suffix = hint ? `; ${hint}` : "";
-    throw new Error(
-      `${target.channel} outbound adapter is unavailable${suffix}; ensure the channel plugin is installed, enabled, configured, and the gateway was restarted`,
-    );
-  }
-  await adapter.sendText({
-    cfg,
-    to: target.to,
-    text,
-    accountId: target.accountId,
-  });
-}
 
 /**
  * Forward a piece of agent output to configured downstream channels in parallel.
@@ -78,11 +26,37 @@ export async function forwardAgentOutput(text: string, deps: ForwardDeps): Promi
   if (!text.trim()) return;
   await Promise.all(
     deps.forwardTo.map(async (target) => {
+      const label = `${target.channel}:${target.accountId ?? "default"}:${target.to}`;
       try {
-        await sendToTarget(target, text, deps.cfg, deps.channelRuntime);
-        deps.log(`[openclaw-looki] forwarded to ${formatTarget(target)} len=${text.length}`);
+        const parsed = parseSessionKey(target.sessionKey);
+        if (!parsed) {
+          throw new Error(`invalid sessionKey: ${target.sessionKey}`);
+        }
+        await deliverOutboundPayloads({
+          cfg: deps.cfg,
+          channel: target.channel as OutboundChannel,
+          to: target.to,
+          accountId: target.accountId,
+          payloads: [{ text }],
+          session: buildOutboundSessionContext({
+            cfg: deps.cfg,
+            agentId: parsed.agentId,
+            sessionKey: target.sessionKey,
+            conversationType: parsed.peerKind,
+          }),
+          mirror: {
+            sessionKey: target.sessionKey,
+            agentId: parsed.agentId,
+            text,
+            isGroup: parsed.peerKind === "group",
+            // Scope the idempotency key by target so the same upstream event
+            // can still fan out to every configured downstream once.
+            idempotencyKey: deps.idempotencyKey ? `openclaw-looki:forward:${label}:${deps.idempotencyKey}` : undefined,
+          },
+        });
+        deps.log(`[openclaw-looki] forwarded to ${label} len=${text.length}`);
       } catch (err) {
-        deps.errLog(`[openclaw-looki] forward to ${formatTarget(target)} failed: ${String(err)}`);
+        deps.errLog(`[openclaw-looki] forward to ${label} failed: ${String(err)}`);
       }
     }),
   );

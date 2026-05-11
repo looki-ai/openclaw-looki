@@ -10,6 +10,13 @@ import {
   LOOKI_MEMORY_TOOL_PARAMETERS,
   makeLookiMemoryExecute,
 } from "./src/tools/memory-tool.js";
+import {
+  LOOKI_TASK_TOOL_DESCRIPTION,
+  LOOKI_TASK_TOOL_LABEL,
+  LOOKI_TASK_TOOL_NAME,
+  LOOKI_TASK_TOOL_PARAMETERS,
+  makeLookiTaskExecute,
+} from "./src/tools/task-tool.js";
 
 export default {
   id: "openclaw-looki",
@@ -26,6 +33,13 @@ export default {
       description: LOOKI_MEMORY_TOOL_DESCRIPTION,
       parameters: LOOKI_MEMORY_TOOL_PARAMETERS,
       execute: makeLookiMemoryExecute(() => api.config, api.logger),
+    });
+    api.registerTool({
+      name: LOOKI_TASK_TOOL_NAME,
+      label: LOOKI_TASK_TOOL_LABEL,
+      description: LOOKI_TASK_TOOL_DESCRIPTION,
+      parameters: LOOKI_TASK_TOOL_PARAMETERS,
+      execute: makeLookiTaskExecute(() => api.config, api.logger),
     });
     api.registerChannel({ plugin: lookiPlugin });
   },
