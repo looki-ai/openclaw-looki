@@ -9,7 +9,7 @@ import {
   MIN_OPENCLAW_VERSION,
   PLUGIN_SPEC,
   compareVersions,
-  getOpenclawStateDir,
+  getOpenClawStateDir,
   parseVersion,
 } from "@looki-ai/openclaw-looki/shared";
 
@@ -128,7 +128,7 @@ export function getCliVersion(): string | null {
 export function getInstalledPluginVersion(): string | null {
   try {
     const pkgPath = path.join(
-      getOpenclawStateDir(),
+      getOpenClawStateDir(),
       "extensions",
       CHANNEL_ID,
       "package.json",
@@ -140,7 +140,7 @@ export function getInstalledPluginVersion(): string | null {
   }
 }
 
-export function getOpenclawVersion(): string | null {
+export function getOpenClawVersion(): string | null {
   try {
     const raw = run("openclaw", ["--version"]);
     const parsed = parseVersion(raw);
@@ -152,7 +152,7 @@ export function getOpenclawVersion(): string | null {
   }
 }
 
-export function ensureOpenclawInstalled(t: Translator): void {
+export function ensureOpenClawInstalled(t: Translator): void {
   if (!which("openclaw")) {
     error(t("openclaw.missing"));
     console.log("  npm install -g openclaw");
@@ -163,7 +163,7 @@ export function ensureOpenclawInstalled(t: Translator): void {
 }
 
 export function ensureHostVersion(t: Translator): string {
-  const version = getOpenclawVersion();
+  const version = getOpenClawVersion();
   if (!version) {
     error(t("version.missing"));
     process.exit(1);

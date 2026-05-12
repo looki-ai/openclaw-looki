@@ -4,9 +4,8 @@ import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 
 import { getUpdates, type LookiEventEnvelope } from "../looki/client.js";
 import { forwardAgentOutput } from "../forwarding/forward.js";
-import type { LookiForwardTarget } from "../forwarding/types.js";
-import { lookiEventToMsgContext, resolveAgentText } from "../looki/events.js";
-import { sanitizeLogMessage } from "../shared/sanitize.js";
+import { lookiEventToMessageContext, resolveAgentText } from "../looki/events.js";
+import { sanitizeLogMessage, type LookiForwardTarget } from "../shared/index.js";
 import {
   resolveLookiChannelRuntime,
   type LookiChannelRuntime,
@@ -17,6 +16,7 @@ const DEFAULT_POLL_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_EVENTS = 10;
 const RETRY_DELAY_MS = 2_000;
 const MAX_CONSECUTIVE_FAILURES = 3;
+const MAX_CONSECUTIVE_FORWARD_FAILURES = 5;
 const BACKOFF_DELAY_MS = 30_000;
 // On 409 (poll_in_flight) the server already has another poller; back off a
 // bit longer than the usual retry to let the other poller unwind.
@@ -65,6 +65,28 @@ export async function monitorLookiProvider(opts: MonitorLookiOpts): Promise<void
   log(`[openclaw-looki] monitor started (${baseUrl}, account=${accountId})`);
 
   let consecutiveFailures = 0;
+  let consecutiveForwardFailures = 0;
+
+  const recordForwardResult = (eventId: string, ok: number, failed: number) => {
+    // Total failure = all targets failed. A mixed ok/failed result means the
+    // system is still partially working (e.g. one downstream is down but the
+    // others delivered) — don't escalate to a "something is broken" alert on
+    // that. Purely-empty outcomes (0/0, no text or no targets) leave the
+    // counter untouched since no delivery was attempted.
+    if (failed === 0 && ok > 0) {
+      consecutiveForwardFailures = 0;
+      return;
+    }
+    if (ok > 0) return;
+    if (failed === 0) return;
+    consecutiveForwardFailures += 1;
+    if (consecutiveForwardFailures >= MAX_CONSECUTIVE_FORWARD_FAILURES) {
+      errLog(
+        `[openclaw-looki] forwarding fully failed for ${consecutiveForwardFailures} consecutive events; latest event=${eventId} failed=${failed}`,
+      );
+      consecutiveForwardFailures = 0;
+    }
+  };
 
   while (!abortSignal?.aborted) {
     try {
@@ -102,6 +124,7 @@ export async function monitorLookiProvider(opts: MonitorLookiOpts): Promise<void
             forwardTo,
             log,
             errLog,
+            recordForwardResult,
           });
           updateStatus({ lastInboundAt: Date.now() });
         } catch (err) {
@@ -141,6 +164,7 @@ type ProcessDeps = {
   forwardTo?: LookiForwardTarget[];
   log: (msg: string) => void;
   errLog: (msg: string) => void;
+  recordForwardResult: (eventId: string, ok: number, failed: number) => void;
 };
 
 async function processLookiEvent(event: LookiEventEnvelope, deps: ProcessDeps): Promise<void> {
@@ -153,19 +177,23 @@ async function processLookiEvent(event: LookiEventEnvelope, deps: ProcessDeps): 
     deps.log(
       `[openclaw-looki] ai_revise=false, forwarding verbatim event=${event.id} len=${text.length}`,
     );
-    if ((deps.forwardTo?.length ?? 0) > 0 && text) {
-      await forwardAgentOutput(text, {
-        cfg: deps.config,
-        forwardTo: deps.forwardTo ?? [],
-        idempotencyKey: event.id,
-        log: deps.log,
-        errLog: deps.errLog,
-      });
+    if (!text) return;
+    if ((deps.forwardTo?.length ?? 0) === 0) {
+      deps.log(`[openclaw-looki] event=${event.id} dropped: no forwardTo configured`);
+      return;
     }
+    const result = await forwardAgentOutput(text, {
+      cfg: deps.config,
+      forwardTo: deps.forwardTo ?? [],
+      idempotencyKey: event.id,
+      log: deps.log,
+      errLog: deps.errLog,
+    });
+    deps.recordForwardResult(event.id, result.ok, result.failed);
     return;
   }
 
-  const ctx = lookiEventToMsgContext(event, deps.accountId);
+  const ctx = lookiEventToMessageContext(event, deps.accountId);
   deps.log(
     `[openclaw-looki] ai_revise=true, dispatching event=${event.id} to=${ctx.To} forwardTargets=${deps.forwardTo?.length ?? 0}`,
   );
@@ -230,13 +258,14 @@ async function processLookiEvent(event: LookiEventEnvelope, deps: ProcessDeps): 
           deps.log(`[openclaw-looki] deliver has no forwardTo targets, dropping event=${event.id}`);
           return;
         }
-        await forwardAgentOutput(text, {
+        const result = await forwardAgentOutput(text, {
           cfg: deps.config,
           forwardTo: deps.forwardTo ?? [],
           idempotencyKey: event.id,
           log: deps.log,
           errLog: deps.errLog,
         });
+        deps.recordForwardResult(event.id, result.ok, result.failed);
       },
       onError: (err, info) => {
         deps.errLog(`[openclaw-looki] reply ${info.kind}: ${String(err)}`);
