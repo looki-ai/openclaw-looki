@@ -4,6 +4,12 @@
   "engines": {
     "openclaw": ">=2026.4.24"
   },
+  "contracts": {
+    "tools": [
+      "looki_memory",
+      "looki_task"
+    ]
+  },
   "channels": [
     "openclaw-looki"
   ],
