@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { getOpenclawStateDir, type OpenClawConfigShape } from "@looki-ai/openclaw-looki/shared";
+import { getOpenClawStateDir, type OpenClawConfigShape } from "@looki-ai/openclaw-looki/shared";
 
-export type OpenclawConfig = OpenClawConfigShape;
+export type OpenClawConfig = OpenClawConfigShape;
 
 export function getConfigPath(): string {
-  return path.join(getOpenclawStateDir(), "openclaw.json");
+  return path.join(getOpenClawStateDir(), "openclaw.json");
 }
 
 export class ConfigReadError extends Error {
@@ -19,21 +19,21 @@ export class ConfigReadError extends Error {
   }
 }
 
-export function readConfig(): OpenclawConfig {
+export function readConfig(): OpenClawConfig {
   const configPath = getConfigPath();
   if (!fs.existsSync(configPath)) return {};
   try {
     const raw = fs.readFileSync(configPath, "utf-8");
     const parsed = JSON.parse(raw) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    return parsed as OpenclawConfig;
+    return parsed as OpenClawConfig;
   } catch (cause) {
     throw new ConfigReadError(configPath, cause);
   }
 }
 
-export function writeConfig(config: OpenclawConfig): void {
-  const stateDir = getOpenclawStateDir();
+export function writeConfig(config: OpenClawConfig): void {
+  const stateDir = getOpenClawStateDir();
   const configPath = getConfigPath();
   fs.mkdirSync(stateDir, { recursive: true });
   const tmpPath = `${configPath}.${process.pid}.tmp`;

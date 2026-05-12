@@ -13,7 +13,7 @@ const LookiForwardTargetSchema = z
     channel: z.string().min(1),
     accountId: z.string().min(1).optional(),
     to: z.string().min(1),
-    sessionKey: z.string().min(1).optional(),
+    sessionKey: z.string().min(1),
   })
   .strict();
 

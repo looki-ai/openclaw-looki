@@ -5,8 +5,7 @@ import {
   type DeliverOutboundPayloadsParams,
 } from "openclaw/plugin-sdk/outbound-runtime";
 
-import { parseSessionKey } from "../shared/session-key.js";
-import type { LookiForwardTarget } from "./types.js";
+import { parseSessionKeyDetailed, type LookiForwardTarget } from "../shared/index.js";
 
 type OutboundChannel = DeliverOutboundPayloadsParams["channel"];
 
@@ -18,24 +17,24 @@ export type ForwardDeps = {
   errLog: (msg: string) => void;
 };
 
+export type ForwardResult = {
+  ok: number;
+  failed: number;
+};
+
 /**
  * Forward a piece of agent output to configured downstream channels in parallel.
  * Each target is isolated: one failure or slow target does not block the others.
  */
-export async function forwardAgentOutput(text: string, deps: ForwardDeps): Promise<void> {
-  if (!text.trim()) return;
-  await Promise.all(
+export async function forwardAgentOutput(text: string, deps: ForwardDeps): Promise<ForwardResult> {
+  if (!text.trim()) return { ok: 0, failed: 0 };
+  const results = await Promise.all(
     deps.forwardTo.map(async (target) => {
       const label = `${target.channel}:${target.accountId ?? "default"}:${target.to}`;
       try {
-        if (!target.sessionKey) {
-          throw new Error(
-            "forward target is missing sessionKey; re-run `openclaw-looki configure` to pick a session",
-          );
-        }
-        const parsed = parseSessionKey(target.sessionKey);
-        if (!parsed) {
-          throw new Error(`invalid sessionKey: ${target.sessionKey}`);
+        const parsed = parseSessionKeyDetailed(target.sessionKey);
+        if (!parsed.ok) {
+          throw new Error(`invalid sessionKey (${parsed.error}): ${target.sessionKey}`);
         }
         await deliverOutboundPayloads({
           cfg: deps.cfg,
@@ -45,15 +44,15 @@ export async function forwardAgentOutput(text: string, deps: ForwardDeps): Promi
           payloads: [{ text }],
           session: buildOutboundSessionContext({
             cfg: deps.cfg,
-            agentId: parsed.agentId,
+            agentId: parsed.value.agentId,
             sessionKey: target.sessionKey,
-            conversationType: parsed.peerKind,
+            conversationType: parsed.value.peerKind,
           }),
           mirror: {
             sessionKey: target.sessionKey,
-            agentId: parsed.agentId,
+            agentId: parsed.value.agentId,
             text,
-            isGroup: parsed.peerKind === "group",
+            isGroup: parsed.value.peerKind === "group",
             // Scope the idempotency key by target so the same upstream event
             // can still fan out to every configured downstream once.
             idempotencyKey: deps.idempotencyKey
@@ -62,9 +61,15 @@ export async function forwardAgentOutput(text: string, deps: ForwardDeps): Promi
           },
         });
         deps.log(`[openclaw-looki] forwarded to ${label} len=${text.length}`);
+        return true;
       } catch (err) {
         deps.errLog(`[openclaw-looki] forward to ${label} failed: ${String(err)}`);
+        return false;
       }
     }),
   );
+  return {
+    ok: results.filter(Boolean).length,
+    failed: results.filter((ok) => !ok).length,
+  };
 }

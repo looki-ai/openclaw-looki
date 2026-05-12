@@ -5,7 +5,6 @@ export const MIN_OPENCLAW_VERSION = "2026.4.24";
 
 export const GLOBAL_BASE_URL = "https://open.looki.ai";
 export const CHINA_BASE_URL = "https://open.looki.tech";
-export const LOCAL_BASE_URL = "http://localhost:9001";
 
 export const DEFAULT_BASE_URL = GLOBAL_BASE_URL;
 export const DEFAULT_ACCOUNT_ID = "default";
