@@ -14,7 +14,7 @@ import { makeTranslator, type Translator } from "./i18n.js";
 import { error, log } from "./ui.js";
 import {
   ensureHostVersion,
-  ensureOpenclawInstalled,
+  ensureOpenClawInstalled,
   getCliVersion,
   getInstalledPluginVersion,
   installPlugin,
@@ -29,15 +29,8 @@ function setLocale(next: Locale): void {
 
 const t: Translator = makeTranslator(() => currentLocale, {
   pluginSpec: PLUGIN_SPEC,
-  minOpenclawVersion: MIN_OPENCLAW_VERSION,
+  minOpenClawVersion: MIN_OPENCLAW_VERSION,
 });
-
-function initLocale(options: CliOptions): void {
-  if (options.locale) {
-    setLocale(options.locale);
-    return;
-  }
-}
 
 function printHelp(): void {
   console.log(`
@@ -70,7 +63,7 @@ function shouldSkipProgressLine(line: string): boolean {
 async function runInstall(options: CliOptions): Promise<void> {
   intro(t("wizard.intro"));
   log(`CLI version: ${getCliVersion() ?? "not installed"}`);
-  ensureOpenclawInstalled(t);
+  ensureOpenClawInstalled(t);
   ensureHostVersion(t);
 
   const versionBefore = getInstalledPluginVersion();
@@ -152,8 +145,6 @@ async function main(): Promise<number> {
     printHelp();
     return 0;
   }
-
-  initLocale(parsed);
 
   if (parsed.command === "install") {
     await runInstall(parsed);

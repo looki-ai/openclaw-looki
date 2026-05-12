@@ -1,12 +1,13 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 
-import { normalizeForwardTargets, type LookiForwardTarget } from "../forwarding/types.js";
 import {
   CHANNEL_ID,
   DEFAULT_ACCOUNT_ID,
   DEFAULT_BASE_URL,
   DEFAULT_MAX_EVENTS,
   DEFAULT_POLL_TIMEOUT_MS,
+  normalizeForwardTargets,
+  type LookiForwardTarget,
 } from "../shared/index.js";
 import { normalizeLookiBaseUrl } from "./base-url.js";
 
