@@ -4,6 +4,7 @@ export * from "./i18n.js";
 export * from "./config.js";
 export * from "./discovery.js";
 export * from "./forward-draft.js";
+export * from "./session-key.js";
 export * from "./version.js";
 export * from "./looki-api.js";
 export * from "./sanitize.js";
