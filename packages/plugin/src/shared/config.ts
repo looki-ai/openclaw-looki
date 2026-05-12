@@ -7,7 +7,12 @@ export type LookiChannelConfig = {
   accountId?: string;
   pollTimeoutMs?: number;
   maxEvents?: number;
-  forwardTo?: Array<{ channel: string; accountId?: string; to: string }>;
+  forwardTo?: Array<{
+    channel: string;
+    accountId?: string;
+    to: string;
+    sessionKey: string;
+  }>;
 };
 
 export type OpenClawConfigShape = {
@@ -36,9 +41,4 @@ export function patchLookiChannelConfig<T extends OpenClawConfigShape>(
       },
     },
   };
-}
-
-export function getLookiChannelConfig(cfg: OpenClawConfigShape): LookiChannelConfig {
-  const channels = cfg.channels ?? {};
-  return (channels[CHANNEL_ID] as LookiChannelConfig | undefined) ?? {};
 }
