@@ -52,7 +52,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "openclaw": ">=2026.4.24"
+    "openclaw": ">=2026.4.14"
   },
   "openclaw": {
     "extensions": [

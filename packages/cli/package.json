@@ -37,7 +37,7 @@
     "@looki-ai/openclaw-looki": "workspace:^"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.24"
+    "openclaw": ">=2026.4.14"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -45,7 +45,7 @@
     }
   },
   "devDependencies": {
-    "openclaw": ">=2026.4.24"
+    "openclaw": ">=2026.4.14"
   },
   "engines": {
     "node": ">=22"
