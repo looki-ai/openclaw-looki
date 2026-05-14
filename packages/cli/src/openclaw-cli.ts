@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
   CHANNEL_ID,
   MIN_OPENCLAW_VERSION,
+  PLUGIN_PACKAGE_NAME,
   PLUGIN_SPEC,
   compareVersions,
   getOpenClawStateDir,
@@ -126,18 +127,20 @@ export function getCliVersion(): string | null {
 }
 
 export function getInstalledPluginVersion(): string | null {
-  try {
-    const pkgPath = path.join(
-      getOpenClawStateDir(),
-      "extensions",
-      CHANNEL_ID,
-      "package.json",
-    );
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as { version?: string };
-    return pkg.version ?? null;
-  } catch {
-    return null;
+  const stateDir = getOpenClawStateDir();
+  const candidates = [
+    path.join(stateDir, "npm", "node_modules", ...PLUGIN_PACKAGE_NAME.split("/"), "package.json"),
+    path.join(stateDir, "extensions", CHANNEL_ID, "package.json"),
+  ];
+  for (const pkgPath of candidates) {
+    try {
+      const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as { version?: string };
+      if (pkg.version) return pkg.version;
+    } catch {
+      // try next candidate
+    }
   }
+  return null;
 }
 
 export function getOpenClawVersion(): string | null {

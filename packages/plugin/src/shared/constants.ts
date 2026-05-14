@@ -1,7 +1,8 @@
 export const CHANNEL_ID = "openclaw-looki";
-export const PLUGIN_SPEC = "@looki-ai/openclaw-looki@latest";
+export const PLUGIN_PACKAGE_NAME = "@looki-ai/openclaw-looki";
+export const PLUGIN_SPEC = `${PLUGIN_PACKAGE_NAME}@latest`;
 
-export const MIN_OPENCLAW_VERSION = "2026.4.24";
+export const MIN_OPENCLAW_VERSION = "2026.4.14";
 
 export const GLOBAL_BASE_URL = "https://open.looki.ai";
 export const CHINA_BASE_URL = "https://open.looki.tech";
